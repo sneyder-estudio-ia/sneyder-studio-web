@@ -11,6 +11,7 @@ export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVideoLocked, setIsVideoLocked] = useState(true);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   // Toggle body scroll locking based on whether video is locked
@@ -37,6 +38,8 @@ export default function Home() {
 
       if (isVideoLocked) {
         e.preventDefault();
+        if (!isVideoLoaded) return;
+        
         if (videoRef.current && videoRef.current.duration) {
           // Adjust scrub sensitivity for wheel (Slower)
           const newTime = videoRef.current.currentTime + (e.deltaY * 0.002);
@@ -74,6 +77,8 @@ export default function Home() {
 
       if (isVideoLocked) {
         e.preventDefault();
+        if (!isVideoLoaded) return;
+
         const deltaY = touchStartY - e.touches[0].clientY;
         touchStartY = e.touches[0].clientY;
         
@@ -121,7 +126,7 @@ export default function Home() {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('scroll', handleDefaultScroll);
     };
-  }, [isVideoLocked]);
+  }, [isVideoLocked, isVideoLoaded]);
 
   useEffect(() => {
     const savedData = localStorage.getItem("sneyder_cms_data");
@@ -214,14 +219,21 @@ export default function Home() {
                 <section key="hero" className="relative w-full min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center bg-black">
                   
                   {/* Fondo de Video - top on mobile, absolute full-cover on desktop */}
-                  <div className="w-full relative md:absolute md:inset-0 z-0 flex items-center justify-center bg-black shrink-0">
+                  <div className="w-full relative md:absolute md:inset-0 z-0 flex items-center justify-center bg-black shrink-0 min-h-[50vh] md:min-h-full">
+                    {!isVideoLoaded && (
+                      <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black">
+                        <span className="w-8 h-8 rounded-full border-2 border-tertiary border-t-transparent animate-spin mb-4"></span>
+                        <span className="text-tertiary text-xs font-bold uppercase tracking-widest animate-pulse">Cargando experiencia...</span>
+                      </div>
+                    )}
                     <video 
                       ref={videoRef}
                       src="/video/baner.mp4"
                       muted
                       playsInline
                       preload="auto"
-                      className="w-full h-auto md:w-full md:h-full md:object-cover z-0"
+                      onCanPlayThrough={() => setIsVideoLoaded(true)}
+                      className={`w-full h-auto md:w-full md:h-full md:object-cover z-0 transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                     />
                     {/* Subtle Dark Overlay solo visible si el texto se monta encima (Desktop) */}
                     <div className="hidden md:block absolute inset-0 bg-black/40 z-10 pointer-events-none" />
