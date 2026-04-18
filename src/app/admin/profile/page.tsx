@@ -14,6 +14,26 @@ export default function ProfilePage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      document.body.classList.add("menu-open");
+      document.documentElement.classList.add("menu-open");
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
+    };
+  }, [isMenuOpen]);
+
+  useEffect(() => {
     const savedProfile = localStorage.getItem("sneyder_profile");
     if (savedProfile) {
       setProfile(JSON.parse(savedProfile));

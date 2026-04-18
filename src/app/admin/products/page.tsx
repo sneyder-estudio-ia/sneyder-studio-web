@@ -13,6 +13,26 @@ export default function ProductsCmsPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
+  useEffect(() => {
+    if (isMenuOpen) {
+      document.body.style.overflow = "hidden";
+      document.documentElement.style.overflow = "hidden";
+      document.body.classList.add("menu-open");
+      document.documentElement.classList.add("menu-open");
+    } else {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.documentElement.style.overflow = "";
+      document.body.classList.remove("menu-open");
+      document.documentElement.classList.remove("menu-open");
+    };
+  }, [isMenuOpen]);
+
   // Hero Scrubbing Logic
   const [isVideoLocked, setIsVideoLocked] = useState(false);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);

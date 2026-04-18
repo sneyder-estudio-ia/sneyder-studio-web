@@ -1,12 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { supabase } from "@/lib/supabase";
 import AdminSidebar from "@/components/AdminSidebar";
 
 export default function AdminPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      if (currentUser) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        setUserProfile(profile);
+      }
+    };
+    checkUser();
+  }, []);
+
 
   return (
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
@@ -24,15 +46,22 @@ export default function AdminPage() {
           </h1>
         </div>
         <div className="flex items-center shrink-0">
-          <Link href="/admin/profile" className="w-9 h-9 md:w-10 md:h-10 rounded-full border border-outline-variant/30 overflow-hidden relative block hover:scale-110 transition-transform active:scale-95 shadow-lg shadow-tertiary/10">
-            <Image
-              alt="Admin User Profile"
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8h2AuDvpetITxyY5bLzL1an2xlyAbFuWWMOxsbnJImJ4nbS_8r1ELxCar1CmNTTRkWo57V8Zt_n9S2SYqspD7Hgx8eBwXdC5dIUbHBbc4IqdwQ9uZ-wNBr2-XE_PpTApsC4Zx46XGX3dsRKHTyhhPpPDfyuqpgRT0Fq1KJAiAY11dJinntBb_cXEPYBSkcjGmkczCikKk6MPmiumE32aJ4Jgt5aHD4aj89RRl1QTlQNonz-zuwHzgSX6CEPqHTqPTC8qAReItRRQ"
-              fill
-              className="object-cover"
-            />
+          <Link href="/admin/profile" className="w-9 h-9 md:w-10 md:h-10 rounded-full border border-outline-variant/30 overflow-hidden relative block hover:scale-110 transition-transform active:scale-95 shadow-lg shadow-tertiary/10 bg-slate-800">
+            {user ? (
+              <Image
+                alt="Admin User Profile"
+                src={user.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuA8h2AuDvpetITxyY5bLzL1an2xlyAbFuWWMOxsbnJImJ4nbS_8r1ELxCar1CmNTTRkWo57V8Zt_n9S2SYqspD7Hgx8eBwXdC5dIUbHBbc4IqdwQ9uZ-wNBr2-XE_PpTApsC4Zx46XGX3dsRKHTyhhPpPDfyuqpgRT0Fq1KJAiAY11dJinntBb_cXEPYBSkcjGmkczCikKk6MPmiumE32aJ4Jgt5aHD4aj89RRl1QTlQNonz-zuwHzgSX6CEPqHTqPTC8qAReItRRQ"}
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <span className="material-symbols-outlined text-slate-500 text-base">person</span>
+              </div>
+            )}
           </Link>
         </div>
+
       </header>
 
       {/* Main Canvas */}

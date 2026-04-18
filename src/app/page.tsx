@@ -13,7 +13,10 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [authView, setAuthView] = useState<'login' | 'register'>('login');
+  const [user, setUser] = useState<any>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
   const [isVideoLocked, setIsVideoLocked] = useState(true);
+
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const frameRef = useRef(1);
@@ -51,16 +54,34 @@ export default function Home() {
     
     if (isVideoLocked || showAuthModal || isMenuOpen) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      if (isMenuOpen) {
+        document.body.classList.add('menu-open');
+        document.documentElement.classList.add('menu-open');
+      }
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.classList.remove('menu-open');
+      document.documentElement.classList.remove('menu-open');
     }
-    return () => { document.body.style.overflow = ''; };
+    return () => { 
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.classList.remove('menu-open');
+      document.documentElement.classList.remove('menu-open');
+    };
   }, [isVideoLocked, showAuthModal, isMenuOpen]);
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
       // If menu is open or modal is open, let its scroll work normally
-      if (document.body.classList.contains('menu-open') || showAuthModal) return;
+      if (document.body.classList.contains('menu-open') || showAuthModal) {
+        if (!(e.target as HTMLElement)?.closest('aside')) {
+          e.preventDefault();
+        }
+        return;
+      }
 
       if (isVideoLocked) {
         e.preventDefault();
@@ -94,7 +115,12 @@ export default function Home() {
     };
     
     const handleTouchMove = (e: TouchEvent) => {
-      if (document.body.classList.contains('menu-open') || showAuthModal) return;
+      if (document.body.classList.contains('menu-open') || showAuthModal) {
+        if (!(e.target as HTMLElement)?.closest('aside')) {
+          e.preventDefault();
+        }
+        return;
+      }
 
       if (isVideoLocked) {
         e.preventDefault();
@@ -150,7 +176,36 @@ export default function Home() {
     const savedOrder = localStorage.getItem("sneyder_cms_order");
     if (savedData) setData(JSON.parse(savedData));
     if (savedOrder) setSectionsOrder(JSON.parse(savedOrder));
+
+    // Supabase Auth Listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      const currentUser = session?.user || null;
+      setUser(currentUser);
+      
+      if (currentUser) {
+        // Fetch profile
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+        setUserProfile(profile);
+      } else {
+        setUserProfile(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    setUser(null);
+    setUserProfile(null);
+    setIsMenuOpen(false);
+  };
+
+
 
   return (
     <div className="text-on-background selection:bg-tertiary/30 selection:text-tertiary min-h-screen bg-background relative overflow-x-hidden">
@@ -165,41 +220,60 @@ export default function Home() {
           </button>
           <span className="text-lg font-black tracking-wider text-cyan-400 font-headline uppercase">Sneyder Studio</span>
         </div>
-        <div className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-cyan-400/30">
-          <Image 
-            alt="User Avatar" 
-            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCO8RUk1wD7WV7O7IKZ_NBnLhlsnuVdHeC9x_CyLRsEpavDT9Qu9rC4-F4JAFIMwExYTNXtPsW04RAgXxe2vZ_1xgd0Wpqlz62JTPKFItouFbiVzuuvaA3Jr4zodwxrF3k5SScHvPKbmmQvNvCnMsjMY1m7yzSHBq-NVdD2N3qaTUfNHCwYii6gD_VVnTZrwbjzB-EmuUn_Y4QYasiBWkPdcLN2PPRgr4tyrGNvjDYnaz1WSLw73itY4B6zTZAWRKzhDVirP2Wyrcw"
-            width={32}
-            height={32}
-          />
-        </div>
+        
+        {user ? (
+          <div className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-cyan-400/30">
+            <Image 
+              alt="User Avatar" 
+              src={user.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuCO8RUk1wD7WV7O7IKZ_NBnLhlsnuVdHeC9x_CyLRsEpavDT9Qu9rC4-F4JAFIMwExYTNXtPsW04RAgXxe2vZ_1xgd0Wpqlz62JTPKFItouFbiVzuuvaA3Jr4zodwxrF3k5SScHvPKbmmQvNvCnMsjMY1m7yzSHBq-NVdD2N3qaTUfNHCwYii6gD_VVnTZrwbjzB-EmuUn_Y4QYasiBWkPdcLN2PPRgr4tyrGNvjDYnaz1WSLw73itY4B6zTZAWRKzhDVirP2Wyrcw"}
+              width={32}
+              height={32}
+            />
+          </div>
+        ) : (
+          <button 
+            onClick={() => { setShowAuthModal(true); setAuthView('login'); }}
+            className="bg-tertiary/10 border border-tertiary/50 text-tertiary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-tertiary hover:text-on-tertiary transition-all"
+          >
+            Acceder
+          </button>
+        )}
       </header>
 
-      {/* NavigationDrawer */}
+
       <aside 
-        className={`fixed left-0 top-0 z-[70] h-full w-80 bg-[#0c1324] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out font-headline text-slate-200 ${
+        className={`fixed left-0 top-0 z-[70] h-[100dvh] w-80 bg-[#0c1324] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out font-headline text-slate-200 overflow-hidden ${
           isMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <div className="p-8 flex flex-col gap-2">
           <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 rounded-full overflow-hidden">
-              <Image 
-                alt="User Profile Avatar" 
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"
-                width={48}
-                height={48}
-              />
+            <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-slate-800">
+              {user ? (
+                <Image 
+                  alt="User Profile Avatar" 
+                  src={user.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"}
+                  width={48}
+                  height={48}
+                />
+              ) : (
+                <span className="material-symbols-outlined text-slate-500 text-3xl">person</span>
+              )}
             </div>
             <div>
-              <p className="font-bold text-white">User Name</p>
-              <p className="text-xs text-cyan-400 uppercase tracking-widest">Premium Account</p>
+              <p className="font-bold text-white truncate max-w-[150px]">
+                {userProfile?.manager_name || user?.email || "Visitante"}
+              </p>
+              <p className="text-xs text-cyan-400 uppercase tracking-widest">
+                {user ? "Premium Account" : "Modo Invitado"}
+              </p>
             </div>
+
           </div>
           <div className="text-xl font-bold text-cyan-400 mb-8">Sneyder Studio</div>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 space-y-1 scrollbar-hide">
+        <nav className="flex-1 overflow-y-auto px-4 space-y-1 scrollbar-hide overscroll-behavior-contain" style={{ overscrollBehavior: 'contain' }}>
           <NavItem icon="account_circle" label="Perfil de usuario" href="/" active />
           <NavItem icon="settings" label="Administración" href="/admin" />
           <NavItem icon="shopping_bag" label="Mis pedidos" href="/" />
@@ -214,8 +288,19 @@ export default function Home() {
           
           <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Empresa</div>
           <NavItem icon="info" label="Acerca de nosotros" href="/" small />
-          <NavItem icon="language" label="Idioma" href="/" small className="mb-10" />
+          <NavItem icon="language" label="Idioma" href="/" small className="mb-4" />
+          
+          {user && (
+            <button 
+              onClick={handleSignOut}
+              className="flex items-center gap-4 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors w-full text-left"
+            >
+              <span className="material-symbols-outlined">logout</span>
+              <span>Cerrar Sesión</span>
+            </button>
+          )}
         </nav>
+
       </aside>
 
       {/* Overlay */}
@@ -515,6 +600,11 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
         const { data: authData, error: authError } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
+          options: {
+            data: {
+              full_name: formData.managerName,
+            }
+          }
         });
 
         if (authError) throw authError;
@@ -523,18 +613,23 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
           // Store extra info in profiles table
           const { error: profileError } = await supabase
             .from('profiles')
-            .insert([
-              {
+            .upsert({
                 id: authData.user.id,
                 manager_name: formData.managerName,
                 company_name: formData.companyName,
-                whatsapp: formData.whatsapp
-              }
-            ]);
+                whatsapp: formData.whatsapp,
+                email: formData.email,
+                updated_at: new Date().toISOString(),
+              }, { onConflict: 'id' });
 
-          if (profileError) throw profileError;
+          if (profileError) {
+            console.error("Profile creation error:", profileError);
+            // We don't throw here to avoid blocking the user if the record already exists or RLS is tricky
+            // but we should at least log it.
+          }
           
           setShowVerificationToast(true);
+          onClose(); // Close modal on success
         }
       } else {
         // Sign In
@@ -546,9 +641,10 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
         if (signInError) throw signInError;
         
         // Success!
-        window.location.reload(); // Simple way to refresh state
+        onClose(); // Just close the modal, onAuthStateChange will handle the rest
       }
     } catch (err: any) {
+
       setError(err.message || "Ha ocurrido un error inesperado");
       console.error("Auth error:", err);
     } finally {
