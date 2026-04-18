@@ -2,9 +2,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect, Suspense, useRef } from "react";
+import { useState, useEffect, Suspense, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { siteData as initialSiteData } from "@/data/siteData";
+import { supabase } from "@/lib/supabase";
+
+const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
 function EditorContent() {
   const searchParams = useSearchParams();
@@ -16,6 +19,26 @@ function EditorContent() {
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState("");
+  const [dragActive, setDragActive] = useState(false);
+
+  // Sub-card editor state
+  const [editingSubCard, setEditingSubCard] = useState<number | null>(null);
+  const [subCardDragActive, setSubCardDragActive] = useState<number | null>(null);
+  const [subCardUploading, setSubCardUploading] = useState<number | null>(null);
+  const subCardFileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user || session.user.email !== ADMIN_EMAIL) {
+        router.replace('/');
+        return;
+      }
+    };
+    checkAdmin();
+  }, [router]);
 
   useEffect(() => {
     const savedData = localStorage.getItem("sneyder_cms_data");
@@ -24,7 +47,6 @@ function EditorContent() {
 
     if (section) {
       let target: any = null;
-      // Map section parameter to correct data key
       const dataKey = section === 'ai' ? 'aiModels' : (section === 'cyber' ? 'cybersecurity' : section);
       
       if (index !== null) {
@@ -37,14 +59,14 @@ function EditorContent() {
       }
 
       if (target) {
-        // Ensure standard fields for the dedicated editor
         const normalized = {
           ...target,
           title: target.title || target.name || "",
           description: target.description || target.sub || target.text || "",
           buttons: target.buttons || [],
           media: target.media || { type: 'image', url: '/video/frames/ezgif-frame-001.jpg' },
-          icon: target.icon || "category"
+          icon: target.icon || "category",
+          subCards: target.subCards || [],
         };
         setItem(normalized);
       }
@@ -52,11 +74,136 @@ function EditorContent() {
     setLoading(false);
   }, [section, index]);
 
+  // --- File Upload to Supabase Storage ---
+  const uploadFile = useCallback(async (file: File): Promise<string | null> => {
+    const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
+    const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
+    const allAllowed = [...allowedImageTypes, ...allowedVideoTypes];
+
+    if (!allAllowed.includes(file.type)) {
+      alert("Tipo de archivo no soportado. Usa imágenes (JPG, PNG, GIF, WebP, SVG) o videos (MP4, WebM, OGG, MOV).");
+      return null;
+    }
+
+    const maxSize = 50 * 1024 * 1024; // 50MB
+    if (file.size > maxSize) {
+      alert("El archivo es demasiado grande. Máximo 50MB.");
+      return null;
+    }
+
+    const ext = file.name.split('.').pop();
+    const fileName = `cms/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+
+    setUploading(true);
+    setUploadProgress("Subiendo archivo...");
+
+    const { data: uploadData, error } = await supabase.storage
+      .from('media')
+      .upload(fileName, file, {
+        cacheControl: '3600',
+        upsert: false,
+      });
+
+    if (error) {
+      console.error("Upload error:", error);
+      alert("Error al subir el archivo: " + error.message);
+      setUploading(false);
+      setUploadProgress("");
+      return null;
+    }
+
+    const { data: urlData } = supabase.storage
+      .from('media')
+      .getPublicUrl(uploadData.path);
+
+    setUploading(false);
+    setUploadProgress("");
+    return urlData.publicUrl;
+  }, []);
+
+  // --- Main media handlers ---
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const isVideo = file.type.startsWith('video/');
+    const url = await uploadFile(file);
+    if (url) {
+      updateItem("media", { ...item.media, url, type: isVideo ? 'video' : 'image' });
+    }
+    // Reset input so same file can be selected again
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    const isVideo = file.type.startsWith('video/');
+    const url = await uploadFile(file);
+    if (url) {
+      updateItem("media", { ...item.media, url, type: isVideo ? 'video' : 'image' });
+    }
+  };
+
+  const handleDrag = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  // --- Sub-card media upload ---
+  const handleSubCardFileSelect = async (e: React.ChangeEvent<HTMLInputElement>, cardIndex: number) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSubCardUploading(cardIndex);
+    const isVideo = file.type.startsWith('video/');
+    const url = await uploadFile(file);
+    setSubCardUploading(null);
+    if (url) {
+      const newSubCards = [...(item.subCards || [])];
+      newSubCards[cardIndex] = {
+        ...newSubCards[cardIndex],
+        media: { type: isVideo ? 'video' : 'image', url },
+      };
+      updateItem("subCards", newSubCards);
+    }
+    if (subCardFileRef.current) subCardFileRef.current.value = "";
+  };
+
+  const handleSubCardDrop = async (e: React.DragEvent, cardIndex: number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setSubCardDragActive(null);
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    setSubCardUploading(cardIndex);
+    const isVideo = file.type.startsWith('video/');
+    const url = await uploadFile(file);
+    setSubCardUploading(null);
+    if (url) {
+      const newSubCards = [...(item.subCards || [])];
+      newSubCards[cardIndex] = {
+        ...newSubCards[cardIndex],
+        media: { type: isVideo ? 'video' : 'image', url },
+      };
+      updateItem("subCards", newSubCards);
+    }
+  };
+
   const handleSave = () => {
     const newData = { ...data };
     const dataKey = section === 'ai' ? 'aiModels' : (section === 'cyber' ? 'cybersecurity' : section);
     
-    // Sync back to specific fields if necessary
     const processedItem = { ...item };
     if (section === 'ai' && index !== null) {
       processedItem.name = item.title;
@@ -101,6 +248,35 @@ function EditorContent() {
     updateItem("buttons", newButtons);
   };
 
+  // --- Sub-card management ---
+  const addSubCard = () => {
+    const newSubCards = [
+      ...(item.subCards || []),
+      {
+        title: "Nueva Sub-Tarjeta",
+        description: "",
+        icon: "widgets",
+        media: { type: 'image', url: '' },
+      },
+    ];
+    updateItem("subCards", newSubCards);
+    setEditingSubCard(newSubCards.length - 1);
+  };
+
+  const removeSubCard = (idx: number) => {
+    if (window.confirm("¿Eliminar esta sub-tarjeta?")) {
+      const newSubCards = (item.subCards || []).filter((_: any, i: number) => i !== idx);
+      updateItem("subCards", newSubCards);
+      if (editingSubCard === idx) setEditingSubCard(null);
+    }
+  };
+
+  const updateSubCard = (idx: number, key: string, value: any) => {
+    const newSubCards = [...(item.subCards || [])];
+    newSubCards[idx] = { ...newSubCards[idx], [key]: value };
+    updateItem("subCards", newSubCards);
+  };
+
   if (loading) return (
     <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
       <div className="w-12 h-12 border-4 border-tertiary border-t-transparent rounded-full animate-spin"></div>
@@ -132,6 +308,19 @@ function EditorContent() {
         }
         .glow-button:hover {
           box-shadow: 0 0 30px rgba(47, 217, 244, 0.4);
+        }
+        .drop-zone-active {
+          border-color: rgba(47, 217, 244, 0.8) !important;
+          background: rgba(47, 217, 244, 0.05) !important;
+          box-shadow: inset 0 0 30px rgba(47, 217, 244, 0.1);
+        }
+        .upload-shimmer {
+          background: linear-gradient(90deg, transparent, rgba(47, 217, 244, 0.1), transparent);
+          animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
         }
       `}</style>
 
@@ -277,7 +466,7 @@ function EditorContent() {
              </div>
           </section>
 
-          {/* Media Editor */}
+          {/* Media Upload Section */}
           <section className="glass-panel p-8 rounded-sm space-y-6">
             <h2 className="text-xs font-bold text-tertiary uppercase tracking-[0.4em] mb-8 flex items-center gap-3">
               <span className="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
@@ -295,26 +484,259 @@ function EditorContent() {
               >Video</button>
             </div>
 
-            <div className="space-y-2">
-              <label className="text-[10px] font-bold uppercase tracking-widest text-slate-400">URL del Recurso</label>
-              <div className="flex gap-2">
-                <input 
-                  type="text" 
-                  value={item.media.url}
-                  onChange={(e) => updateItem("media", { ...item.media, url: e.target.value })}
-                  className="flex-1 bg-slate-900/50 border border-white/10 p-4 rounded-sm focus:border-tertiary outline-none transition-all text-sm"
-                  placeholder="https://..."
-                />
-                <button 
-                  onClick={() => fileInputRef.current?.click()}
-                  className="bg-white/5 border border-white/10 px-4 rounded-sm hover:bg-white/10 transition-all text-tertiary"
-                >
-                  <span className="material-symbols-outlined">upload_file</span>
-                </button>
-                <input type="file" ref={fileInputRef} className="hidden" />
+            {/* Drop Zone */}
+            <div
+              onDragEnter={handleDrag}
+              onDragLeave={handleDrag}
+              onDragOver={handleDrag}
+              onDrop={handleDrop}
+              onClick={() => !uploading && fileInputRef.current?.click()}
+              className={`relative border-2 border-dashed rounded-sm p-8 text-center cursor-pointer transition-all duration-300 ${
+                dragActive
+                  ? "drop-zone-active border-tertiary"
+                  : "border-white/15 hover:border-tertiary/50 hover:bg-white/[0.02]"
+              } ${uploading ? "pointer-events-none opacity-70" : ""}`}
+            >
+              {uploading && (
+                <div className="absolute inset-0 overflow-hidden rounded-sm">
+                  <div className="upload-shimmer absolute inset-0"></div>
+                </div>
+              )}
+
+              <div className="relative z-10 flex flex-col items-center gap-4">
+                {uploading ? (
+                  <>
+                    <div className="w-10 h-10 border-3 border-tertiary border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-xs text-tertiary font-bold uppercase tracking-widest">{uploadProgress}</p>
+                  </>
+                ) : item.media.url ? (
+                  <>
+                    {item.media.type === 'image' ? (
+                      <div className="w-full max-h-48 rounded-sm overflow-hidden mb-2">
+                        <img src={item.media.url} alt="Preview" className="w-full h-full object-cover max-h-48" />
+                      </div>
+                    ) : (
+                      <div className="w-full max-h-48 rounded-sm overflow-hidden mb-2">
+                        <video src={item.media.url} className="w-full h-full object-cover max-h-48" muted />
+                      </div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-tertiary text-lg">swap_horiz</span>
+                      <p className="text-[10px] text-slate-400 uppercase tracking-widest">
+                        Click o arrastra para cambiar el archivo
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="w-16 h-16 rounded-full bg-tertiary/10 flex items-center justify-center border border-tertiary/20">
+                      <span className="material-symbols-outlined text-tertiary text-3xl">
+                        {item.media.type === 'video' ? 'videocam' : 'add_photo_alternate'}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-white mb-1">
+                        {dragActive ? "Suelta el archivo aquí" : "Arrastra tu archivo aquí"}
+                      </p>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest">
+                        o haz click para seleccionar • JPG, PNG, GIF, WebP, MP4, WebM • Max 50MB
+                      </p>
+                    </div>
+                  </>
+                )}
               </div>
-              <p className="text-[9px] text-slate-500 uppercase tracking-widest mt-2 italic">Tip: Puedes usar enlaces de Unsplash para imágenes o MP4 directos para videos.</p>
+
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/ogg,video/quicktime"
+                onChange={handleFileSelect}
+              />
             </div>
+
+            {/* Remove media button */}
+            {item.media.url && (
+              <button
+                onClick={() => updateItem("media", { ...item.media, url: '' })}
+                className="text-[9px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors flex items-center gap-2 mt-2"
+              >
+                <span className="material-symbols-outlined text-sm">delete</span>
+                Eliminar multimedia
+              </button>
+            )}
+          </section>
+
+          {/* Sub-Cards Editor */}
+          <section className="glass-panel p-8 rounded-sm">
+            <div className="flex justify-between items-center mb-8">
+              <h2 className="text-xs font-bold text-tertiary uppercase tracking-[0.4em] flex items-center gap-3">
+                <span className="w-1.5 h-1.5 bg-tertiary rounded-full animate-pulse"></span>
+                Sub-Tarjetas Internas
+              </h2>
+              <button 
+                onClick={addSubCard}
+                className="text-[9px] font-bold uppercase tracking-widest bg-white/5 border border-white/10 px-3 py-1.5 rounded-full hover:bg-tertiary hover:text-on-tertiary transition-all flex items-center gap-1"
+              >
+                <span className="material-symbols-outlined text-xs">add</span>
+                Añadir Sub-Tarjeta
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {(!item.subCards || item.subCards.length === 0) && (
+                <div className="py-10 text-center border border-dashed border-white/10 rounded-sm">
+                  <span className="material-symbols-outlined text-3xl text-slate-600 mb-2 block">dashboard_customize</span>
+                  <p className="text-xs text-slate-500 uppercase tracking-widest">No hay sub-tarjetas</p>
+                  <p className="text-[10px] text-slate-600 mt-1">Añade tarjetas internas para enriquecer tu contenido</p>
+                </div>
+              )}
+
+              {(item.subCards || []).map((sub: any, idx: number) => (
+                <div 
+                  key={idx} 
+                  className={`bg-white/5 rounded-sm border transition-all duration-300 overflow-hidden ${
+                    editingSubCard === idx ? "border-tertiary/40" : "border-white/5 hover:border-white/15"
+                  }`}
+                >
+                  {/* Sub-card header (always visible) */}
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-tertiary/10 rounded-sm flex items-center justify-center border border-tertiary/20">
+                        <span className="material-symbols-outlined text-tertiary text-sm">{sub.icon || 'widgets'}</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-white">{sub.title || "Sin título"}</p>
+                        <p className="text-[9px] text-slate-500 uppercase tracking-widest">Sub-tarjeta #{idx + 1}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => setEditingSubCard(editingSubCard === idx ? null : idx)}
+                        className={`p-1.5 rounded transition-all ${editingSubCard === idx ? "bg-tertiary text-on-tertiary" : "text-slate-500 hover:text-tertiary hover:bg-white/5"}`}
+                      >
+                        <span className="material-symbols-outlined text-sm">{editingSubCard === idx ? "expand_less" : "edit"}</span>
+                      </button>
+                      <button 
+                        onClick={() => removeSubCard(idx)}
+                        className="p-1.5 rounded text-slate-500 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                      >
+                        <span className="material-symbols-outlined text-sm">delete</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Expanded edit form */}
+                  {editingSubCard === idx && (
+                    <div className="px-4 pb-5 space-y-4 border-t border-white/5 pt-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Título</label>
+                          <input 
+                            type="text" 
+                            value={sub.title}
+                            onChange={(e) => updateSubCard(idx, "title", e.target.value)}
+                            className="w-full bg-black/30 border border-white/10 p-2.5 text-xs rounded-sm outline-none focus:border-tertiary transition-all"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Icono</label>
+                          <div className="flex gap-2">
+                            <div className="w-10 h-10 bg-slate-800 rounded-sm flex items-center justify-center border border-white/10 shrink-0">
+                              <span className="material-symbols-outlined text-tertiary text-sm">{sub.icon || 'widgets'}</span>
+                            </div>
+                            <input 
+                              type="text" 
+                              value={sub.icon || ''}
+                              onChange={(e) => updateSubCard(idx, "icon", e.target.value)}
+                              className="flex-1 bg-black/30 border border-white/10 p-2.5 text-xs rounded-sm outline-none focus:border-tertiary transition-all"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Descripción</label>
+                        <textarea 
+                          rows={2}
+                          value={sub.description || ''}
+                          onChange={(e) => updateSubCard(idx, "description", e.target.value)}
+                          className="w-full bg-black/30 border border-white/10 p-2.5 text-xs rounded-sm outline-none focus:border-tertiary transition-all leading-relaxed"
+                          placeholder="Descripción de la sub-tarjeta..."
+                        />
+                      </div>
+
+                      {/* Sub-card media upload */}
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Multimedia de Sub-Tarjeta</label>
+                        <div
+                          onDragEnter={(e) => { e.preventDefault(); e.stopPropagation(); setSubCardDragActive(idx); }}
+                          onDragLeave={(e) => { e.preventDefault(); e.stopPropagation(); setSubCardDragActive(null); }}
+                          onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); }}
+                          onDrop={(e) => handleSubCardDrop(e, idx)}
+                          onClick={() => {
+                            if (subCardUploading !== idx && subCardFileRef.current) {
+                              subCardFileRef.current.dataset.index = String(idx);
+                              subCardFileRef.current.click();
+                            }
+                          }}
+                          className={`border border-dashed rounded-sm p-4 text-center cursor-pointer transition-all duration-300 ${
+                            subCardDragActive === idx
+                              ? "drop-zone-active border-tertiary"
+                              : "border-white/15 hover:border-tertiary/40"
+                          } ${subCardUploading === idx ? "pointer-events-none opacity-70" : ""}`}
+                        >
+                          {subCardUploading === idx ? (
+                            <div className="flex items-center justify-center gap-2 py-2">
+                              <div className="w-5 h-5 border-2 border-tertiary border-t-transparent rounded-full animate-spin"></div>
+                              <span className="text-[10px] text-tertiary uppercase tracking-widest font-bold">Subiendo...</span>
+                            </div>
+                          ) : sub.media?.url ? (
+                            <div className="flex items-center gap-3">
+                              {sub.media.type === 'image' ? (
+                                <img src={sub.media.url} alt="" className="w-16 h-12 object-cover rounded-sm" />
+                              ) : (
+                                <div className="w-16 h-12 bg-black/40 rounded-sm flex items-center justify-center">
+                                  <span className="material-symbols-outlined text-tertiary text-sm">play_circle</span>
+                                </div>
+                              )}
+                              <span className="text-[9px] text-slate-500 uppercase tracking-widest flex-1 text-left">Click o arrastra para cambiar</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center gap-2 py-1">
+                              <span className="material-symbols-outlined text-slate-500 text-lg">add_photo_alternate</span>
+                              <span className="text-[10px] text-slate-500 uppercase tracking-widest">Arrastra o click para subir</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {sub.media?.url && (
+                          <button
+                            onClick={() => updateSubCard(idx, "media", { type: 'image', url: '' })}
+                            className="text-[8px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 mt-1"
+                          >
+                            <span className="material-symbols-outlined text-xs">close</span>
+                            Eliminar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Hidden file input for sub-cards */}
+            <input 
+              type="file" 
+              ref={subCardFileRef} 
+              className="hidden" 
+              accept="image/jpeg,image/png,image/gif,image/webp,image/svg+xml,video/mp4,video/webm,video/ogg,video/quicktime"
+              onChange={(e) => {
+                const idx = parseInt(subCardFileRef.current?.dataset.index || "0");
+                handleSubCardFileSelect(e, idx);
+              }}
+            />
           </section>
 
         </div>
@@ -354,16 +776,61 @@ function EditorContent() {
 
             {/* Media Preview Section */}
             <div className="mt-12 rounded-sm overflow-hidden border border-white/10 aspect-video relative bg-black/40 group/media">
-               {item.media.type === 'image' ? (
-                 <img src={item.media.url || "https://images.unsplash.com/photo-1633356122544-f134324a6cee?q=80&w=2070&auto=format&fit=crop"} alt="Preview" className="w-full h-full object-cover opacity-60 group-hover/media:scale-105 transition-transform duration-700" />
+               {item.media.url ? (
+                 item.media.type === 'image' ? (
+                   <img src={item.media.url} alt="Preview" className="w-full h-full object-cover opacity-60 group-hover/media:scale-105 transition-transform duration-700" />
+                 ) : (
+                   <video 
+                     src={item.media.url} 
+                     className="w-full h-full object-cover opacity-60" 
+                     muted 
+                     loop 
+                     autoPlay
+                     playsInline
+                   />
+                 )
                ) : (
-                 <div className="w-full h-full flex items-center justify-center relative">
-                    <span className="material-symbols-outlined text-4xl text-tertiary/40">play_circle</span>
-                    <p className="absolute bottom-4 text-[9px] text-tertiary/40 font-bold uppercase tracking-widest">Vista previa de Video</p>
+                 <div className="w-full h-full flex items-center justify-center">
+                   <div className="flex flex-col items-center gap-2">
+                     <span className="material-symbols-outlined text-4xl text-tertiary/30">image</span>
+                     <p className="text-[9px] text-tertiary/30 font-bold uppercase tracking-widest">Sin multimedia</p>
+                   </div>
                  </div>
                )}
                <div className="absolute inset-0 bg-gradient-to-t from-[#0c1324] to-transparent opacity-60"></div>
             </div>
+
+            {/* Sub-Cards Preview */}
+            {item.subCards && item.subCards.length > 0 && (
+              <div className="mt-8 space-y-3">
+                <p className="text-[9px] text-tertiary/50 font-bold uppercase tracking-[0.3em] mb-4">Sub-Tarjetas</p>
+                <div className="grid grid-cols-1 gap-3">
+                  {item.subCards.map((sub: any, i: number) => (
+                    <div key={i} className="bg-white/5 border border-white/10 rounded-sm p-4 flex items-start gap-4 hover:border-tertiary/20 transition-all">
+                      {sub.media?.url ? (
+                        sub.media.type === 'image' ? (
+                          <img src={sub.media.url} alt="" className="w-14 h-14 object-cover rounded-sm shrink-0" />
+                        ) : (
+                          <div className="w-14 h-14 bg-black/40 rounded-sm flex items-center justify-center shrink-0">
+                            <span className="material-symbols-outlined text-tertiary text-sm">play_circle</span>
+                          </div>
+                        )
+                      ) : (
+                        <div className="w-14 h-14 bg-tertiary/5 border border-tertiary/10 rounded-sm flex items-center justify-center shrink-0">
+                          <span className="material-symbols-outlined text-tertiary/40">{sub.icon || 'widgets'}</span>
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-white truncate">{sub.title}</p>
+                        {sub.description && (
+                          <p className="text-[10px] text-slate-400 leading-relaxed mt-1 line-clamp-2">{sub.description}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="p-6 bg-tertiary/5 border border-tertiary/20 rounded-sm">

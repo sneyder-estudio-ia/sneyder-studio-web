@@ -54,7 +54,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
             </div>
             <div className="min-w-0">
               <p className="font-bold text-white text-sm truncate">
-                {userProfile?.manager_name || user?.email || "Visitante"}
+                {userProfile?.manager_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || "Visitante"}
               </p>
               <p className="text-[10px] text-cyan-400 uppercase tracking-widest truncate">Administrador</p>
             </div>

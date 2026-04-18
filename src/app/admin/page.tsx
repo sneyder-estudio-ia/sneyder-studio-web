@@ -3,32 +3,51 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import AdminSidebar from "@/components/AdminSidebar";
 
+const ADMIN_EMAIL = "sneyder23081994@gmail.com";
+
 export default function AdminPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isChecking, setIsChecking] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const currentUser = session?.user || null;
-      setUser(currentUser);
-      if (currentUser) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single();
-        setUserProfile(profile);
+      
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        router.replace('/');
+        return;
       }
+      
+      setUser(currentUser);
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', currentUser.id)
+        .single();
+      setUserProfile(profile);
+      setIsChecking(false);
     };
     checkUser();
-  }, []);
+  }, [router]);
 
+  if (isChecking) {
+    return (
+      <div className="bg-background text-on-background flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <span className="w-8 h-8 border-2 border-tertiary/30 border-t-tertiary rounded-full animate-spin"></span>
+          <p className="text-xs text-slate-500 uppercase tracking-widest">Verificando acceso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">

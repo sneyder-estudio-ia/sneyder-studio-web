@@ -6,6 +6,8 @@ import Link from "next/link";
 import { supabase } from '@/lib/supabase';
 import { siteData as initialSiteData } from "@/data/siteData";
 
+const ADMIN_EMAIL = "sneyder23081994@gmail.com";
+
 export default function Home() {
   const [data, setData] = useState(initialSiteData);
   const [sectionsOrder, setSectionsOrder] = useState(initialSiteData.sectionsOrder);
@@ -262,7 +264,7 @@ export default function Home() {
             </div>
             <div>
               <p className="font-bold text-white truncate max-w-[150px]">
-                {userProfile?.manager_name || user?.email || "Visitante"}
+                {userProfile?.manager_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || "Visitante"}
               </p>
               <p className="text-xs text-cyan-400 uppercase tracking-widest">
                 {user ? "Premium Account" : "Modo Invitado"}
@@ -274,8 +276,8 @@ export default function Home() {
         </div>
 
         <nav className="flex-1 overflow-y-auto px-4 space-y-1 scrollbar-hide overscroll-behavior-contain" style={{ overscrollBehavior: 'contain' }}>
-          <NavItem icon="account_circle" label="Perfil de usuario" href="/" active />
-          <NavItem icon="settings" label="Administración" href="/admin" />
+          <NavItem icon="account_circle" label="Perfil de usuario" href="/profile" active />
+          {user?.email === ADMIN_EMAIL && <NavItem icon="settings" label="Administración" href="/admin" />}
           <NavItem icon="shopping_bag" label="Mis pedidos" href="/" />
           <NavItem icon="bolt" label="Servicios" href="/" />
           <NavItem icon="psychology" label="Modelo de IA" href="/" />
@@ -652,23 +654,7 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
     }
   };
 
-  const handleGoogleAuth = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: window.location.origin
-        }
-      });
-      if (error) throw error;
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   // Close on ESC
   useEffect(() => {
@@ -680,13 +666,14 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
   }, [onClose]);
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[100] overflow-y-auto">
+      <div className="flex min-h-full items-center justify-center p-4">
       <div 
-        className="absolute inset-0 bg-black/80 backdrop-blur-md animate-fade-in" 
+        className="fixed inset-0 bg-black/80 backdrop-blur-md animate-fade-in" 
         onClick={onClose} 
       />
       
-      <div className="relative w-full max-w-lg bg-surface/80 border border-white/10 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] md:max-h-[85vh] animate-slide-up backdrop-blur-xl custom-scrollbar">
+      <div className="relative w-full max-w-lg bg-surface/80 border border-white/10 rounded-2xl shadow-2xl overflow-x-hidden animate-slide-up backdrop-blur-xl">
         {/* Decorative Top Line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tertiary to-transparent"></div>
         
@@ -697,7 +684,7 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
           <span className="material-symbols-outlined">close</span>
         </button>
 
-        <div className="p-8 md:p-12">
+        <div className="p-5 sm:p-8 md:p-12">
           {/* Tabs */}
           <div className="flex gap-8 mb-10 border-b border-white/5">
             <button 
@@ -881,22 +868,6 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
                     )}
                   </button>
 
-                  <div className="relative flex items-center justify-center py-4">
-                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-                    <span className="relative px-4 bg-transparent text-[10px] font-bold uppercase tracking-widest text-slate-600">O continuar con</span>
-                  </div>
-
-                  <div className="flex flex-col gap-4">
-                    <button 
-                      type="button"
-                      onClick={handleGoogleAuth}
-                      disabled={isLoading}
-                      className="flex items-center justify-center gap-3 py-3 border border-white/10 rounded-lg hover:bg-white/5 transition-all group shadow-sm disabled:opacity-50"
-                    >
-                      <Image src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width={18} height={18} alt="Google" className="group-hover:scale-110 transition-transform" />
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-white font-body">Continuar con Google</span>
-                    </button>
-                  </div>
                 </form>
               </div>
           </div>
@@ -935,6 +906,7 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

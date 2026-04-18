@@ -3,8 +3,12 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { siteData as initialSiteData } from "@/data/siteData";
+import { supabase } from "@/lib/supabase";
 import AdminSidebar from "@/components/AdminSidebar";
+
+const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
 export default function ProductsCmsPage() {
   const [data, setData] = useState(initialSiteData);
@@ -12,6 +16,21 @@ export default function ProductsCmsPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user || session.user.email !== ADMIN_EMAIL) {
+        router.replace('/');
+        return;
+      }
+      setIsChecking(false);
+    };
+    checkAdmin();
+  }, [router]);
+
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -140,6 +159,17 @@ export default function ProductsCmsPage() {
       default: return id;
     }
   };
+
+  if (isChecking) {
+    return (
+      <div className="bg-background text-on-background flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <span className="w-8 h-8 border-2 border-tertiary/30 border-t-tertiary rounded-full animate-spin"></span>
+          <p className="text-xs text-slate-500 uppercase tracking-widest">Verificando acceso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="text-on-background selection:bg-tertiary/30 selection:text-tertiary min-h-screen bg-background pb-20">

@@ -3,6 +3,10 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+
+const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState({
@@ -12,6 +16,20 @@ export default function ProfilePage() {
   });
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isChecking, setIsChecking] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user || session.user.email !== ADMIN_EMAIL) {
+        router.replace('/');
+        return;
+      }
+      setIsChecking(false);
+    };
+    checkAdmin();
+  }, [router]);
 
   useEffect(() => {
     if (isMenuOpen) {
@@ -49,6 +67,17 @@ export default function ProfilePage() {
   const updateField = (field: string, value: string) => {
     setProfile(prev => ({ ...prev, [field]: value }));
   };
+
+  if (isChecking) {
+    return (
+      <div className="bg-background text-on-background flex items-center justify-center min-h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <span className="w-8 h-8 border-2 border-tertiary/30 border-t-tertiary rounded-full animate-spin"></span>
+          <p className="text-xs text-slate-500 uppercase tracking-widest">Verificando acceso...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-background text-on-surface selection:bg-tertiary/30 min-h-screen">
