@@ -79,7 +79,7 @@ export default function Home() {
     const handleWheel = (e: WheelEvent) => {
       // If menu is open or modal is open, let its scroll work normally
       if (document.body.classList.contains('menu-open') || showAuthModal) {
-        if (!(e.target as HTMLElement)?.closest('aside')) {
+        if (!(e.target as HTMLElement)?.closest('aside') && !(e.target as HTMLElement)?.closest('.auth-modal-content')) {
           e.preventDefault();
         }
         return;
@@ -118,7 +118,7 @@ export default function Home() {
     
     const handleTouchMove = (e: TouchEvent) => {
       if (document.body.classList.contains('menu-open') || showAuthModal) {
-        if (!(e.target as HTMLElement)?.closest('aside')) {
+        if (!(e.target as HTMLElement)?.closest('aside') && !(e.target as HTMLElement)?.closest('.auth-modal-content')) {
           e.preventDefault();
         }
         return;
@@ -673,7 +673,7 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
         onClick={onClose} 
       />
       
-      <div className="relative w-full max-w-lg bg-surface/80 border border-white/10 rounded-2xl shadow-2xl overflow-x-hidden animate-slide-up backdrop-blur-xl">
+      <div className="auth-modal-content relative w-full max-w-lg max-h-[85dvh] overflow-y-auto bg-surface/80 border border-white/10 rounded-2xl shadow-2xl overflow-x-hidden animate-slide-up backdrop-blur-xl">
         {/* Decorative Top Line */}
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tertiary to-transparent"></div>
         
