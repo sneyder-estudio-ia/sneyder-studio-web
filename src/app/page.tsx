@@ -12,7 +12,28 @@ export default function Home() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isVideoLocked, setIsVideoLocked] = useState(true);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const frameRef = useRef(1);
+  const totalFrames = 40;
+
+  const updateFrame = (newFrame: number) => {
+    frameRef.current = newFrame;
+    if (imgRef.current) {
+      const frameInt = Math.min(Math.max(Math.floor(newFrame), 1), totalFrames);
+      imgRef.current.src = `/video/frames/ezgif-frame-${frameInt.toString().padStart(3, '0')}.jpg`;
+    }
+  };
+
+  useEffect(() => {
+    const preloadImg = new window.Image();
+    preloadImg.src = `/video/frames/ezgif-frame-001.jpg`;
+    preloadImg.onload = () => setIsVideoLoaded(true);
+
+    for (let i = 2; i <= totalFrames; i++) {
+        const img = new window.Image();
+        img.src = `/video/frames/ezgif-frame-${i.toString().padStart(3, '0')}.jpg`;
+    }
+  }, []);
 
   // Toggle body scroll locking based on whether video is locked
   useEffect(() => {
@@ -20,6 +41,7 @@ export default function Home() {
     
     // Unlock instantly if user reloads already scrolled down
     if (window.scrollY > 10) {
+      updateFrame(totalFrames);
       setIsVideoLocked(false);
     }
     
@@ -40,27 +62,23 @@ export default function Home() {
         e.preventDefault();
         if (!isVideoLoaded) return;
         
-        if (videoRef.current && videoRef.current.duration) {
-          // Adjust scrub sensitivity for wheel (Slower)
-          const newTime = videoRef.current.currentTime + (e.deltaY * 0.002);
-          if (newTime >= videoRef.current.duration) {
-             videoRef.current.currentTime = videoRef.current.duration;
-             setIsVideoLocked(false);
-          } else if (newTime <= 0) {
-             videoRef.current.currentTime = 0;
-          } else {
-             videoRef.current.currentTime = newTime;
-          }
-          setIsScrolled(videoRef.current.currentTime > 0.5);
+        // Adjust scrub sensitivity for wheel (Slower)
+        const newFrame = frameRef.current + (e.deltaY * 0.05);
+        if (newFrame >= totalFrames) {
+           updateFrame(totalFrames);
+           setIsVideoLocked(false);
+        } else if (newFrame <= 1) {
+           updateFrame(1);
+        } else {
+           updateFrame(newFrame);
         }
+        setIsScrolled(frameRef.current > (totalFrames / 2));
       } else {
         // Unlock when scrolling back up
         if (window.scrollY <= 0 && e.deltaY < 0) {
            e.preventDefault();
            setIsVideoLocked(true);
-           if (videoRef.current) {
-             videoRef.current.currentTime = Math.max(0, videoRef.current.duration - 0.1); 
-           }
+           updateFrame(Math.max(1, totalFrames - 2)); 
         } else {
            setIsScrolled(window.scrollY > 50);
         }
@@ -82,28 +100,24 @@ export default function Home() {
         const deltaY = touchStartY - e.touches[0].clientY;
         touchStartY = e.touches[0].clientY;
         
-        if (videoRef.current && videoRef.current.duration) {
-          // Slower touch sensitivity
-          const newTime = videoRef.current.currentTime + (deltaY * 0.006);
-          if (newTime >= videoRef.current.duration) {
-             videoRef.current.currentTime = videoRef.current.duration;
-             setIsVideoLocked(false);
-          } else if (newTime <= 0) {
-             videoRef.current.currentTime = 0;
-          } else {
-             videoRef.current.currentTime = newTime;
-          }
-          setIsScrolled(videoRef.current.currentTime > 0.5);
+        // Slower touch sensitivity
+        const newFrame = frameRef.current + (deltaY * 0.15);
+        if (newFrame >= totalFrames) {
+           updateFrame(totalFrames);
+           setIsVideoLocked(false);
+        } else if (newFrame <= 1) {
+           updateFrame(1);
+        } else {
+           updateFrame(newFrame);
         }
+        setIsScrolled(frameRef.current > (totalFrames / 2));
       } else {
         if (window.scrollY <= 0) {
           const deltaY = touchStartY - e.touches[0].clientY;
           if (deltaY < 0) { // dragging down at the top
              e.preventDefault();
              setIsVideoLocked(true);
-             if (videoRef.current) {
-                videoRef.current.currentTime = Math.max(0, videoRef.current.duration - 0.1);
-             }
+             updateFrame(Math.max(1, totalFrames - 2));
           }
         }
       }
@@ -216,30 +230,25 @@ export default function Home() {
             if (sectionId === 'hero') return (
               <React.Fragment key="hero-fragment">
                 {/* True Scroll-Locked Hero adaptativo */}
-                <section key="hero" className="relative w-full min-h-[100dvh] overflow-hidden flex flex-col items-center justify-center bg-black">
+                <section key="hero" className="relative w-full min-h-[100dvh] overflow-hidden flex flex-col items-center justify-start md:justify-center bg-black">
                   
                   {/* Fondo de Video - top on mobile, absolute full-cover on desktop */}
-                  <div className="w-full relative md:absolute md:inset-0 z-0 flex items-center justify-center bg-black shrink-0 min-h-[50vh] md:min-h-full">
+                  <div className="w-full relative md:absolute md:inset-0 z-0 flex items-start md:items-center justify-center bg-black shrink-0 md:min-h-full">
                     {!isVideoLoaded && (
                       <div className="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black">
                         <span className="w-8 h-8 rounded-full border-2 border-tertiary border-t-transparent animate-spin mb-4"></span>
                         <span className="text-tertiary text-xs font-bold uppercase tracking-widest animate-pulse">Cargando experiencia...</span>
                       </div>
                     )}
-                    <video 
-                      ref={videoRef}
-                      src="/video/baner.mp4"
-                      muted
-                      playsInline
-                      preload="auto"
-                      onCanPlayThrough={() => setIsVideoLoaded(true)}
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img 
+                      ref={imgRef}
+                      src="/video/frames/ezgif-frame-001.jpg"
+                      alt="Banner Frame"
                       className={`w-full h-auto md:w-full md:h-full md:object-cover z-0 transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
                     />
                     {/* Subtle Dark Overlay solo visible si el texto se monta encima (Desktop) */}
                     <div className="hidden md:block absolute inset-0 bg-black/40 z-10 pointer-events-none" />
-
-                    {/* Watermark Cover - Fuente Animada Derecha */}
-                    <CodeFountain />
                   </div>
                   
                   {/* Contenedor Responsivo del Texto (Flujo normal en móvil, overlap en desktop) */}
@@ -478,41 +487,7 @@ function BottomNavItem({ icon, label, href, active = false }: { icon: string; la
   );
 }
 
-function CodeFountain() {
-  const codes = [
-    "Sneyder",
-    "011001",
-    "Studio",
-    "init()",
-    "Sneyder",
-    "sys.io",
-    "Studio"
-  ];
-  return (
-    <div className={`absolute bottom-0 right-[4px] z-[25] w-24 sm:w-28 md:w-40 h-14 sm:h-16 md:h-20 bg-black/70 backdrop-blur-md overflow-hidden rounded-tl-lg border-t border-l border-tertiary/30 shadow-[0_-5px_15px_rgba(47,217,244,0.15)] pointer-events-none flex justify-around p-1`}>
-      
-      {/* 3 Columns of code to look like a fountain */}
-      <div className="flex flex-col text-tertiary font-mono text-[8px] md:text-[10px] font-bold leading-tight opacity-80 animate-code-1 w-1/3">
-        {codes.slice(0, 4).map((c, i) => <span key={i} className="my-0.5">{c}</span>)}
-        {codes.slice(0, 4).map((c, i) => <span key={`rep-${i}`} className="my-0.5 text-cyan-200">{c}</span>)}
-      </div>
 
-      <div className="flex flex-col text-white font-mono text-[8px] md:text-[10px] font-black leading-tight animate-code-2 w-1/3">
-        {codes.slice(3, 7).map((c, i) => <span key={i} className="my-0.5 text-center drop-shadow-[0_0_5px_rgba(255,255,255,1)]">{c}</span>)}
-        {codes.slice(3, 7).map((c, i) => <span key={`rep-${i}`} className="my-0.5 text-center text-cyan-400 drop-shadow-[0_0_5px_rgba(47,217,244,1)]">{c}</span>)}
-      </div>
-
-      <div className="flex flex-col text-tertiary font-mono text-[8px] md:text-[10px] font-bold leading-tight opacity-70 animate-code-3 w-1/3">
-        {codes.slice(1, 5).map((c, i) => <span key={i} className="my-0.5 text-right">{c}</span>)}
-        {codes.slice(1, 5).map((c, i) => <span key={`rep-${i}`} className="my-0.5 text-right text-white">{c}</span>)}
-      </div>
-
-      {/* Glow overlay shooting up */}
-      <div className="absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-tertiary/50 to-transparent"></div>
-      <div className="absolute inset-x-0 top-0 h-1/4 bg-gradient-to-b from-black to-transparent z-10"></div>
-    </div>
-  );
-}
 
 // Devicon Logos URLs
 const techLogos = [
