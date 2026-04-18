@@ -11,6 +11,7 @@ export default function ProductsCmsPage() {
   const [sectionsOrder, setSectionsOrder] = useState(initialSiteData.sectionsOrder);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
 
   // Hero Scrubbing Logic
   const [isVideoLocked, setIsVideoLocked] = useState(false);
@@ -97,7 +98,28 @@ export default function ProductsCmsPage() {
       setSectionsOrder(newOrder);
     }
   };
+  const moveSection = (index: number, direction: 'up' | 'down') => {
+    const newOrder = [...sectionsOrder];
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    if (newIndex >= 0 && newIndex < newOrder.length) {
+      const temp = newOrder[index];
+      newOrder[index] = newOrder[newIndex];
+      newOrder[newIndex] = temp;
+      setSectionsOrder(newOrder);
+    }
+  };
 
+
+  const getSectionTitle = (id: string) => {
+    switch(id) {
+      case 'hero': return 'Hero / Portada';
+      case 'services': return 'Servicios';
+      case 'ai': return 'Modelos IA';
+      case 'cyber': return 'Ciberseguridad';
+      case 'cta': return 'Newsletter / Acción';
+      default: return id;
+    }
+  };
 
   return (
     <div className="text-on-background selection:bg-tertiary/30 selection:text-tertiary min-h-screen bg-background pb-20">
@@ -136,6 +158,14 @@ export default function ProductsCmsPage() {
         
         <div className="flex items-center gap-6">
           <button 
+            onClick={() => setIsOrderDialogOpen(true)}
+            className="flex items-center gap-2 px-4 py-2 rounded-sm font-bold uppercase tracking-widest text-[10px] bg-slate-800/50 text-[#89ceff] border border-[#89ceff]/20 hover:bg-[#89ceff]/10 transition-all active:scale-95"
+          >
+            <span className="material-symbols-outlined text-sm">reorder</span>
+            Organizar Orden
+          </button>
+
+          <button 
             onClick={saveToLocal}
             disabled={isSaving}
             className={`flex items-center gap-2 px-6 py-2 rounded-sm font-bold uppercase tracking-widest text-xs transition-all ${
@@ -146,14 +176,14 @@ export default function ProductsCmsPage() {
             {isSaving ? "Guardando..." : "Guardar Cambios"}
           </button>
 
-          <div className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-outline-variant/15 relative">
+          <Link href="/admin/profile" className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-outline-variant/15 relative block hover:scale-110 transition-transform active:scale-95">
             <Image 
               alt="Perfil" 
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzwkrverNl3WcBRKDtxiU35dKPAxR7_0cX_VUuKgthuJAmHjwu9XDtujDXdNpFheT-w-LGZiclzpDizH9EFrP2gH0p1bbHPEI8DJYLsVXjQ9XOaEobrIZXFZpPRQNscKFJG6KVJyZSkoy1idSgpQ0I3f1fpqd6OuDBX_M97O2Ky7mhPQUvwAKjwTmhnpRBUML054mTTXvShio2ewZojfVoMk_VlYuCwCPwGqaFr58EPenWn1yNDqV_MygtAlEUaB8aa1gq6DjxzpY"
               fill
               className="object-cover"
             />
-          </div>
+          </Link>
         </div>
       </header>
 
@@ -177,8 +207,15 @@ export default function ProductsCmsPage() {
                 key={sectionId}
                 className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
+                {/* Section Number Badge */}
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
+                  {sIdx + 1}
+                </div>
+
                 <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all shadow-lg"><span className="material-symbols-outlined text-sm">edit</span></button>
+                  <Link href="/admin/products/editor?section=hero">
+                    <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all shadow-lg"><span className="material-symbols-outlined text-sm">edit</span></button>
+                  </Link>
                   <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg"><span className="material-symbols-outlined text-sm">delete</span></button>
                 </div>
 
@@ -230,8 +267,15 @@ export default function ProductsCmsPage() {
                 key={sectionId}
                 className="relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
+                {/* Section Number Badge */}
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
+                  {sIdx + 1}
+                </div>
+
                 <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                  <Link href="/admin/products/editor?section=services">
+                    <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                  </Link>
                   <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
                 </div>
 
@@ -242,9 +286,15 @@ export default function ProductsCmsPage() {
                       key={i}
                       className={`${i === 0 ? "md:col-span-2" : "md:col-span-1"} bg-surface-container-low p-10 rounded-sm inner-glow-top relative border border-dashed transition-all duration-300 border-tertiary/10 group/card`}
                     >
+                      {/* Item Number Badge */}
+                      <div className="absolute top-4 left-4 w-6 h-6 bg-slate-800 text-tertiary text-[10px] flex items-center justify-center font-bold border border-tertiary/20 rounded-full select-none">
+                        {i + 1}
+                      </div>
 
                       <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                        <button className="p-1.5 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-xs">edit</span></button>
+                        <Link href={`/admin/products/editor?section=services&index=${i}`}>
+                          <button className="p-1.5 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-xs">edit</span></button>
+                        </Link>
                         <button onClick={() => deleteService(i)} className="p-1.5 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-xs">delete</span></button>
                       </div>
 
@@ -263,8 +313,15 @@ export default function ProductsCmsPage() {
                 key={sectionId}
                 className="relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
+                {/* Section Number Badge */}
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
+                  {sIdx + 1}
+                </div>
+
                 <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                   <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                   <Link href="/admin/products/editor?section=ai">
+                    <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                   </Link>
                    <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg"><span className="material-symbols-outlined text-sm">delete</span></button>
                 </div>
 
@@ -279,9 +336,15 @@ export default function ProductsCmsPage() {
                           key={i}
                           className="bg-surface-container-lowest p-4 rounded-sm border transition-all duration-300 text-center relative group/item border-outline-variant/10"
                         >
+                          {/* Item Number Badge */}
+                          <div className="absolute top-1 left-1 w-4 h-4 bg-slate-900 text-tertiary text-[8px] flex items-center justify-center font-bold border border-tertiary/20 rounded-full select-none">
+                            {i + 1}
+                          </div>
 
                           <div className="absolute -top-2 -right-2 flex items-center gap-1 z-20 opacity-100 lg:opacity-0 lg:group-hover/item:opacity-100 transition-opacity">
-                            <button className="p-1 bg-black/60 rounded-full border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-[10px]">edit</span></button>
+                            <Link href={`/admin/products/editor?section=ai&index=${i}`}>
+                              <button className="p-1 bg-black/60 rounded-full border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-[10px]">edit</span></button>
+                            </Link>
                             <button onClick={() => deleteModel(i)} className="p-1 bg-black/60 rounded-full border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-[10px]">delete</span></button>
                           </div>
 
@@ -305,8 +368,15 @@ export default function ProductsCmsPage() {
                 key={sectionId}
                 className="relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
+                {/* Section Number Badge */}
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
+                  {sIdx + 1}
+                </div>
+
                 <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                  <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                  <Link href="/admin/products/editor?section=cyber">
+                    <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                  </Link>
                   <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
                 </div>
 
@@ -317,13 +387,18 @@ export default function ProductsCmsPage() {
                     <p className="text-on-surface-variant mb-8">{data.cybersecurity.description}</p>
                     <div className="space-y-4">
                       {data.cybersecurity.items.map((item, i) => (
-                        <div key={i} className="flex items-center justify-between gap-4 p-4 bg-surface-container rounded border border-tertiary/10 group/cyber-item">
+                        <div key={i} className="flex items-center justify-between gap-4 p-4 bg-surface-container rounded border border-tertiary/10 group/cyber-item relative">
                           <div className="flex items-center gap-4">
+                            <span className="w-5 h-5 rounded-full bg-slate-800 text-tertiary text-[9px] flex items-center justify-center font-bold border border-tertiary/20">
+                              {i + 1}
+                            </span>
                             <span className="material-symbols-outlined text-tertiary">{item.icon}</span>
                             <span className="font-bold text-xs uppercase tracking-widest">{item.text}</span>
                           </div>
                           <div className="flex gap-2 opacity-0 group-hover/cyber-item:opacity-100 transition-opacity">
-                             <button className="text-tertiary/40 hover:text-tertiary"><span className="material-symbols-outlined text-sm">edit</span></button>
+                             <Link href={`/admin/products/editor?section=cyber&index=${i}`}>
+                               <button className="text-tertiary/40 hover:text-tertiary"><span className="material-symbols-outlined text-sm">edit</span></button>
+                             </Link>
                              <button onClick={() => deleteCyberItem(i)} className="text-red-500/40 hover:text-red-500"><span className="material-symbols-outlined text-sm">delete</span></button>
                           </div>
                         </div>
@@ -344,8 +419,15 @@ export default function ProductsCmsPage() {
                 key={sectionId}
                 className="bg-surface-container-low p-12 rounded-sm text-center border border-dashed transition-all duration-300 select-none relative group border-tertiary/20"
               >
+                {/* Section Number Badge */}
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
+                  {sIdx + 1}
+                </div>
+
                 <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                   <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                   <Link href="/admin/products/editor?section=cta">
+                    <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                   </Link>
                    <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg"><span className="material-symbols-outlined text-sm">delete</span></button>
                 </div>
 
@@ -365,6 +447,78 @@ export default function ProductsCmsPage() {
           <span className="font-bold text-xs uppercase tracking-widest">Añadir Nueva Sección</span>
         </button>
       </main>
+
+      {/* Reorder Dialog */}
+      {isOrderDialogOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+          <div 
+            className="absolute inset-0 bg-[#0c1324]/80 backdrop-blur-md"
+            onClick={() => setIsOrderDialogOpen(false)}
+          ></div>
+          <div className="relative w-full max-w-md bg-[#161f33] border border-tertiary/30 rounded-sm shadow-[0_0_50px_rgba(47,217,244,0.2)] overflow-hidden">
+            <div className="p-6 border-b border-white/10 flex justify-between items-center">
+              <div>
+                <h2 className="text-xl font-bold font-headline text-[#2fd9f4]">Cambiar Orden</h2>
+                <p className="text-[10px] text-tertiary uppercase tracking-widest mt-1">Arrastra o usa las flechas</p>
+              </div>
+              <button 
+                onClick={() => setIsOrderDialogOpen(false)}
+                className="text-slate-400 hover:text-white"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            
+            <div className="p-6 space-y-3 max-h-[60vh] overflow-y-auto">
+              {sectionsOrder.map((sectionId, index) => (
+                <div 
+                  key={sectionId}
+                  className="flex items-center justify-between p-4 bg-surface-container-high border border-white/5 rounded-sm group hover:border-tertiary/40 transition-all"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="w-6 h-6 rounded-full bg-slate-800 text-tertiary text-[10px] flex items-center justify-center font-bold border border-tertiary/20">
+                      {index + 1}
+                    </span>
+                    <span className="font-bold text-sm uppercase tracking-wide">{getSectionTitle(sectionId)}</span>
+                  </div>
+                  
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => moveSection(index, 'up')}
+                      disabled={index === 0}
+                      className="p-1.5 rounded hover:bg-tertiary/20 text-tertiary disabled:text-slate-600 disabled:hover:bg-transparent transition-all"
+                    >
+                      <span className="material-symbols-outlined text-sm">arrow_upward</span>
+                    </button>
+                    <button 
+                      onClick={() => moveSection(index, 'down')}
+                      disabled={index === sectionsOrder.length - 1}
+                      className="p-1.5 rounded hover:bg-tertiary/20 text-tertiary disabled:text-slate-600 disabled:hover:bg-transparent transition-all"
+                    >
+                      <span className="material-symbols-outlined text-sm">arrow_downward</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="p-6 bg-slate-900/50 border-t border-white/10 flex gap-4">
+              <button 
+                onClick={() => setIsOrderDialogOpen(false)}
+                className="flex-1 py-3 font-bold uppercase tracking-widest text-xs border border-white/10 hover:bg-white/5 transition-all text-slate-300"
+              >
+                Cancelar
+              </button>
+              <button 
+                onClick={() => setIsOrderDialogOpen(false)}
+                className="flex-1 py-3 font-bold uppercase tracking-widest text-xs bg-tertiary text-on-tertiary shadow-[0_0_20px_rgba(47,217,244,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all"
+              >
+                Listo
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

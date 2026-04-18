@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { supabase } from '@/lib/supabase';
 import { siteData as initialSiteData } from "@/data/siteData";
 
 export default function Home() {
@@ -10,6 +11,8 @@ export default function Home() {
   const [sectionsOrder, setSectionsOrder] = useState(initialSiteData.sectionsOrder);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authView, setAuthView] = useState<'login' | 'register'>('login');
   const [isVideoLocked, setIsVideoLocked] = useState(true);
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
@@ -46,18 +49,18 @@ export default function Home() {
       setIsVideoLocked(false);
     }
     
-    if (isVideoLocked) {
+    if (isVideoLocked || showAuthModal || isMenuOpen) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
     }
     return () => { document.body.style.overflow = ''; };
-  }, [isVideoLocked]);
+  }, [isVideoLocked, showAuthModal, isMenuOpen]);
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
-      // If menu is open, let its scroll work normally
-      if (document.body.classList.contains('menu-open')) return;
+      // If menu is open or modal is open, let its scroll work normally
+      if (document.body.classList.contains('menu-open') || showAuthModal) return;
 
       if (isVideoLocked) {
         e.preventDefault();
@@ -91,7 +94,7 @@ export default function Home() {
     };
     
     const handleTouchMove = (e: TouchEvent) => {
-      if (document.body.classList.contains('menu-open')) return;
+      if (document.body.classList.contains('menu-open') || showAuthModal) return;
 
       if (isVideoLocked) {
         e.preventDefault();
@@ -129,7 +132,6 @@ export default function Home() {
         setIsScrolled(window.scrollY > 50);
       }
     };
-
     window.addEventListener('wheel', handleWheel, { passive: false });
     window.addEventListener('touchstart', handleTouchStart, { passive: false });
     window.addEventListener('touchmove', handleTouchMove, { passive: false });
@@ -141,7 +143,7 @@ export default function Home() {
       window.removeEventListener('touchmove', handleTouchMove);
       window.removeEventListener('scroll', handleDefaultScroll);
     };
-  }, [isVideoLocked, isVideoLoaded]);
+  }, [isVideoLocked, isVideoLoaded, showAuthModal]);
 
   useEffect(() => {
     const savedData = localStorage.getItem("sneyder_cms_data");
@@ -273,7 +275,10 @@ export default function Home() {
                         
                         {/* Responsive buttons: stack on small screens */}
                         <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
-                          <button className="bg-tertiary text-on-tertiary px-6 py-4 md:px-10 md:py-5 font-bold text-xs md:text-sm uppercase tracking-widest rounded-sm hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(47,217,244,0.3)] w-full sm:w-auto">
+                          <button 
+                            onClick={() => setShowAuthModal(true)}
+                            className="bg-tertiary text-on-tertiary px-6 py-4 md:px-10 md:py-5 font-bold text-xs md:text-sm uppercase tracking-widest rounded-sm hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(47,217,244,0.3)] w-full sm:w-auto pointer-events-auto"
+                          >
                             {data.hero.primaryCta} <span className="material-symbols-outlined text-sm md:text-base">arrow_forward</span>
                           </button>
                           <button className="backdrop-blur-md bg-white/5 border border-white/10 text-white px-6 py-4 md:px-10 md:py-5 font-bold text-xs md:text-sm uppercase tracking-widest rounded-sm hover:bg-white/10 transition-all w-full sm:w-auto">
@@ -457,6 +462,383 @@ export default function Home() {
         <BottomNavItem icon="insights" label="Insights" href="/admin" />
         <BottomNavItem icon="person" label="Perfil" href="/" />
       </nav>
+      {/* Auth Modal */}
+      {showAuthModal && (
+        <AuthModal 
+          isOpen={showAuthModal} 
+          onClose={() => setShowAuthModal(false)} 
+          initialView={authView}
+          setView={setAuthView}
+        />
+      )}
+    </div>
+  );
+}
+
+// User Authentication Modal (Login / Register)
+function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean; onClose: () => void; initialView: 'login' | 'register'; setView: (view: 'login' | 'register') => void }) {
+  const [isEmailFocused, setIsEmailFocused] = useState(false);
+  const [isPasswordFocused, setIsPasswordFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showVerificationToast, setShowVerificationToast] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Form states
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    managerName: '',
+    companyName: '',
+    whatsapp: '',
+    confirmPassword: ''
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleAuth = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      if (initialView === 'register') {
+        // Validation
+        if (formData.password !== formData.confirmPassword) {
+          throw new Error("Las contraseñas no coinciden");
+        }
+
+        // Sign Up
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (authError) throw authError;
+
+        if (authData.user) {
+          // Store extra info in profiles table
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .insert([
+              {
+                id: authData.user.id,
+                manager_name: formData.managerName,
+                company_name: formData.companyName,
+                whatsapp: formData.whatsapp
+              }
+            ]);
+
+          if (profileError) throw profileError;
+          
+          setShowVerificationToast(true);
+        }
+      } else {
+        // Sign In
+        const { error: signInError } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+
+        if (signInError) throw signInError;
+        
+        // Success!
+        window.location.reload(); // Simple way to refresh state
+      }
+    } catch (err: any) {
+      setError(err.message || "Ha ocurrido un error inesperado");
+      console.error("Auth error:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleAuth = async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin
+        }
+      });
+      if (error) throw error;
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Close on ESC
+  useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleEsc);
+    return () => window.removeEventListener('keydown', handleEsc);
+  }, [onClose]);
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <div 
+        className="absolute inset-0 bg-black/80 backdrop-blur-md animate-fade-in" 
+        onClick={onClose} 
+      />
+      
+      <div className="relative w-full max-w-lg bg-surface/80 border border-white/10 rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] md:max-h-[85vh] animate-slide-up backdrop-blur-xl custom-scrollbar">
+        {/* Decorative Top Line */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-tertiary to-transparent"></div>
+        
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors z-10"
+        >
+          <span className="material-symbols-outlined">close</span>
+        </button>
+
+        <div className="p-8 md:p-12">
+          {/* Tabs */}
+          <div className="flex gap-8 mb-10 border-b border-white/5">
+            <button 
+              onClick={() => setView('login')}
+              className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${initialView === 'login' ? 'text-tertiary' : 'text-white/40 hover:text-white/60'}`}
+            >
+              Iniciar Sesión
+              {initialView === 'login' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-tertiary shadow-[0_0_10px_rgba(47,217,244,0.5)]"></div>}
+            </button>
+            <button 
+              onClick={() => setView('register')}
+              className={`pb-4 text-sm font-bold uppercase tracking-widest transition-all relative ${initialView === 'register' ? 'text-tertiary' : 'text-white/40 hover:text-white/60'}`}
+            >
+              Crear Cuenta
+              {initialView === 'register' && <div className="absolute bottom-0 left-0 w-full h-0.5 bg-tertiary shadow-[0_0_10px_rgba(47,217,244,0.5)]"></div>}
+            </button>
+          </div>
+
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <h3 className="text-2xl font-headline font-black text-white">
+                {initialView === 'login' ? 'Bienvenido a Sneyder' : 'Únete al Futuro'}
+              </h3>
+              <p className="text-sm text-slate-400 font-body">
+                {initialView === 'login' 
+                  ? 'Ingresa tus credenciales para acceder a la plataforma.' 
+                  : 'Completa el formulario para iniciar tu primer proyecto.'}
+              </p>
+            </div>
+
+            <form className="space-y-6 pt-4" onSubmit={handleAuth}>
+              {error && (
+                <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-[10px] p-3 rounded-lg animate-shake">
+                  {error}
+                </div>
+              )}
+
+              {initialView === 'register' && (
+                <>
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Nombre y Apellido del Encargado</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg">person</span>
+                      <input 
+                        type="text" 
+                        name="managerName"
+                        value={formData.managerName}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ej. Juan Pérez"
+                        className="w-full bg-white/5 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-white focus:border-tertiary focus:ring-1 focus:ring-tertiary/20 outline-none transition-all font-body text-sm"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Nombre de la Empresa</label>
+                    <div className="relative">
+                      <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg">domain</span>
+                      <input 
+                        type="text" 
+                        name="companyName"
+                        value={formData.companyName}
+                        onChange={handleChange}
+                        required
+                        placeholder="Ej. Sneyder Studio S.A."
+                        className="w-full bg-white/5 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-white focus:border-tertiary focus:ring-1 focus:ring-tertiary/20 outline-none transition-all font-body text-sm"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Correo Electrónico</label>
+                <div className="relative">
+                  <span className={`absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-lg transition-colors ${isEmailFocused ? 'text-tertiary' : 'text-slate-500'}`}>mail</span>
+                  <input 
+                    type="email" 
+                    name="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    required
+                    placeholder="nombre@empresa.com"
+                    onFocus={() => setIsEmailFocused(true)}
+                    onBlur={() => setIsEmailFocused(false)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-white focus:border-tertiary focus:ring-1 focus:ring-tertiary/20 outline-none transition-all font-body text-sm"
+                  />
+                </div>
+              </div>
+
+              {initialView === 'register' && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Número de WhatsApp (Opcional)</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg">chat</span>
+                    <input 
+                      type="tel" 
+                      name="whatsapp"
+                      value={formData.whatsapp}
+                      onChange={handleChange}
+                      placeholder="+506 8888-8888"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg py-4 pl-12 pr-4 text-white focus:border-tertiary focus:ring-1 focus:ring-tertiary/20 outline-none transition-all font-body text-sm"
+                    />
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Contraseña</label>
+                <div className="relative">
+                  <span className={`absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-lg transition-colors ${isPasswordFocused ? 'text-tertiary' : 'text-slate-500'}`}>lock</span>
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    name="password"
+                    value={formData.password}
+                    onChange={handleChange}
+                    required
+                    placeholder="••••••••"
+                    onFocus={() => setIsPasswordFocused(true)}
+                    onBlur={() => setIsPasswordFocused(false)}
+                    className="w-full bg-white/5 border border-white/10 rounded-lg py-4 pl-12 pr-12 text-white focus:border-tertiary focus:ring-1 focus:ring-tertiary/20 outline-none transition-all font-body text-sm"
+                  />
+                  <button 
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-tertiary transition-colors"
+                  >
+                    <span className="material-symbols-outlined text-lg">
+                      {showPassword ? 'visibility_off' : 'visibility'}
+                    </span>
+                  </button>
+                </div>
+              </div>
+
+              {initialView === 'register' && (
+                <div className="space-y-1">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-slate-500 ml-1">Confirmar Contraseña</label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg">lock_reset</span>
+                    <input 
+                      type={showConfirmPassword ? "text" : "password"} 
+                      name="confirmPassword"
+                      value={formData.confirmPassword}
+                      onChange={handleChange}
+                      required={initialView === 'register'}
+                      placeholder="••••••••"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg py-4 pl-12 pr-12 text-white focus:border-tertiary focus:ring-1 focus:ring-tertiary/20 outline-none transition-all font-body text-sm"
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-tertiary transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-lg">
+                        {showConfirmPassword ? 'visibility_off' : 'visibility'}
+                      </span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {initialView === 'login' && (
+                <div className="flex justify-end">
+                  <button type="button" className="text-[10px] font-bold uppercase tracking-widest text-tertiary hover:text-white transition-colors">¿Olvidaste tu contraseña?</button>
+                </div>
+              )}
+
+                  <button 
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full bg-tertiary text-on-tertiary py-4 rounded-lg font-bold uppercase tracking-[0.2em] text-xs shadow-[0_10px_30px_rgba(47,217,244,0.2)] hover:shadow-[0_10px_40px_rgba(47,217,244,0.4)] hover:brightness-110 active:scale-95 transition-all text-center flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isLoading ? (
+                      <span className="flex items-center gap-2">
+                        <span className="w-4 h-4 border-2 border-on-tertiary/30 border-t-on-tertiary rounded-full animate-spin"></span>
+                        Procesando...
+                      </span>
+                    ) : (
+                      initialView === 'login' ? 'Entrar al Sistema' : 'Empezar ahora'
+                    )}
+                  </button>
+
+                  <div className="relative flex items-center justify-center py-4">
+                    <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
+                    <span className="relative px-4 bg-transparent text-[10px] font-bold uppercase tracking-widest text-slate-600">O continuar con</span>
+                  </div>
+
+                  <div className="flex flex-col gap-4">
+                    <button 
+                      type="button"
+                      onClick={handleGoogleAuth}
+                      disabled={isLoading}
+                      className="flex items-center justify-center gap-3 py-3 border border-white/10 rounded-lg hover:bg-white/5 transition-all group shadow-sm disabled:opacity-50"
+                    >
+                      <Image src="https://www.gstatic.com/images/branding/product/1x/gsa_512dp.png" width={18} height={18} alt="Google" className="group-hover:scale-110 transition-transform" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-white font-body">Continuar con Google</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+          </div>
+        
+        {/* Premium Bottom Bar */}
+        <div className="bg-white/5 p-4 text-center border-t border-white/5">
+          <p className="text-[9px] text-slate-500 uppercase tracking-widest font-body">
+            Protegido por Sneyder Studio Sentinel • 2024
+          </p>
+        </div>
+      </div>
+
+      {/* Floating Verification Window */}
+      {showVerificationToast && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
+          <div className="w-full max-w-sm bg-surface/95 border border-tertiary/30 rounded-2xl shadow-[0_20px_50px_rgba(47,217,244,0.3)] p-8 animate-slide-up backdrop-blur-2xl pointer-events-auto relative">
+            <div className="absolute top-0 left-0 w-full h-1 bg-tertiary shadow-[0_0_15px_rgba(47,217,244,0.5)] rounded-t-2xl"></div>
+            
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-tertiary/20 rounded-full flex items-center justify-center mb-2 border border-tertiary/40">
+                <span className="material-symbols-outlined text-tertiary text-3xl animate-pulse">mark_email_unread</span>
+              </div>
+              
+              <h4 className="text-xl font-headline font-black text-white">Verificar Correo</h4>
+              <p className="text-sm text-slate-300 font-body leading-relaxed">
+                Por favor, revisa tu bandeja de entrada para verificar tu correo y continuar.
+              </p>
+              
+              <button 
+                onClick={() => setShowVerificationToast(false)}
+                className="w-full bg-tertiary/10 border border-tertiary/30 text-tertiary py-3 rounded-lg font-bold uppercase tracking-wider text-[10px] hover:bg-tertiary hover:text-on-tertiary transition-all mt-4"
+              >
+                Cerrar Ventana
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

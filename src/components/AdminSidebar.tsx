@@ -20,7 +20,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
           </div>
           <nav className="space-y-4 lg:space-y-6">
             <SidebarItem icon="home" label="Inicio" href="/" />
-            <SidebarItem icon="person" label="Perfil de usuario" href="/" />
+            <SidebarItem icon="person" label="Perfil de usuario" href="/admin/profile" active={pathname === "/admin/profile"} />
             <SidebarItem icon="admin_panel_settings" label="Administración" href="/admin" active={pathname === "/admin"} />
             <SidebarItem icon="inventory_2" label="Productos Activos" href="/admin/products" active={pathname === "/admin/products"} />
             <SidebarItem icon="shopping_cart" label="Mis pedidos" href="/" />

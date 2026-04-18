@@ -24,14 +24,14 @@ export default function AdminPage() {
           </h1>
         </div>
         <div className="flex items-center shrink-0">
-          <div className="w-9 h-9 md:w-10 md:h-10 rounded-full border border-outline-variant/30 overflow-hidden relative">
+          <Link href="/admin/profile" className="w-9 h-9 md:w-10 md:h-10 rounded-full border border-outline-variant/30 overflow-hidden relative block hover:scale-110 transition-transform active:scale-95 shadow-lg shadow-tertiary/10">
             <Image
               alt="Admin User Profile"
               src="https://lh3.googleusercontent.com/aida-public/AB6AXuA8h2AuDvpetITxyY5bLzL1an2xlyAbFuWWMOxsbnJImJ4nbS_8r1ELxCar1CmNTTRkWo57V8Zt_n9S2SYqspD7Hgx8eBwXdC5dIUbHBbc4IqdwQ9uZ-wNBr2-XE_PpTApsC4Zx46XGX3dsRKHTyhhPpPDfyuqpgRT0Fq1KJAiAY11dJinntBb_cXEPYBSkcjGmkczCikKk6MPmiumE32aJ4Jgt5aHD4aj89RRl1QTlQNonz-zuwHzgSX6CEPqHTqPTC8qAReItRRQ"
               fill
               className="object-cover"
             />
-          </div>
+          </Link>
         </div>
       </header>
 
@@ -100,7 +100,7 @@ export default function AdminPage() {
       <nav className="md:hidden fixed bottom-0 w-full z-50 bg-[#0c1324]/90 backdrop-blur-2xl border-t border-[#45464d]/15 flex justify-around items-center py-2 px-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
         <BottomNavItem icon="home" label="Home" href="/" />
         <BottomNavItem icon="query_stats" label="Insights" href="/admin" active />
-        <BottomNavItem icon="account_circle" label="Profile" href="/" />
+        <BottomNavItem icon="account_circle" label="Profile" href="/admin/profile" />
         <BottomNavItem icon="more_horiz" label="More" href="/" />
       </nav>
     </div>

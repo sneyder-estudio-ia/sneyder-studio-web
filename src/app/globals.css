@@ -117,6 +117,7 @@ body {
   .custom-scrollbar {
     -ms-overflow-style: none; /* IE and Edge */
     scrollbar-width: none; /* Firefox */
+    overscroll-behavior: contain; /* Prevents background scroll chaining */
   }
   .custom-scrollbar::-webkit-scrollbar {
     display: none; /* Chrome, Safari and Opera */
