@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { siteData as initialSiteData } from "@/data/siteData";
 import AdminSidebar from "@/components/AdminSidebar";
 
@@ -12,12 +12,46 @@ export default function ProductsCmsPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
+  // Hero Scrubbing Logic
+  const [isVideoLocked, setIsVideoLocked] = useState(false);
+  const [isVideoLoaded, setIsVideoLoaded] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const frameRef = useRef(1);
+  const touchStartY = useRef(0);
+  const totalFrames = 40;
+
+  const updateFrame = (newFrame: number) => {
+    const frame = Math.max(1, Math.min(totalFrames, Math.round(newFrame)));
+    frameRef.current = frame;
+    if (imgRef.current) {
+      const frameNum = frame.toString().padStart(3, '0');
+      imgRef.current.src = `/video/frames/ezgif-frame-${frameNum}.jpg`;
+    }
+  };
+
   // Load from localeStorage on mount
   useEffect(() => {
     const savedData = localStorage.getItem("sneyder_cms_data");
     const savedOrder = localStorage.getItem("sneyder_cms_order");
     if (savedData) setData(JSON.parse(savedData));
     if (savedOrder) setSectionsOrder(JSON.parse(savedOrder));
+
+    // Preload Frames
+    const preloadFrames = async () => {
+      const promises = [];
+      for (let i = 1; i <= totalFrames; i++) {
+        const img = new (window as any).Image();
+        const frameNum = i.toString().padStart(3, '0');
+        img.src = `/video/frames/ezgif-frame-${frameNum}.jpg`;
+        promises.push(new Promise(resolve => {
+          img.onload = resolve;
+          img.onerror = resolve;
+        }));
+      }
+      await Promise.all(promises);
+      setIsVideoLoaded(true);
+    };
+    preloadFrames();
   }, []);
 
   const saveToLocal = () => {
@@ -162,8 +196,29 @@ export default function ProductsCmsPage() {
                   <p className="text-body text-lg leading-relaxed text-on-surface-variant max-w-xl mb-10">{data.hero.description}</p>
                 </div>
                 <div className="lg:col-span-5 relative">
-                   <div className="aspect-square bg-surface-container-high rounded-sm inner-glow-top flex items-center justify-center relative overflow-hidden">
-                    <Image alt="Visual" className="w-full h-full object-cover opacity-60 mix-blend-luminosity" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDA-S-aZf_IbZ1Hk9hAJRdiCbIt4XTW_i4QxL05LmpxKYtez3E25D2raTQ_2PgqNh-mveC10uaUpgGBmqP-JhWfqSD_tO6jlQriNbwz42qreNaRPGRNt4KXEAfXIv6pTPTAKpVoZ-kv5WEerD9dWzkXPgznx9xhNwwJW9nV5uoBhKIFDrc42rqcmXZyPs2iZwOBUlH6aW1N9N2Q6nY0_5kxx-FBCrxSLz9qfec91jdu1cR2l3wx9ynQzj9gpBVBcSz8Iwico0f90A0" fill />
+                   <div className="aspect-square bg-surface-container-high rounded-sm inner-glow-top flex items-center justify-center relative overflow-hidden group/viz">
+                    {!isVideoLoaded && (
+                      <div className="absolute inset-0 z-10 flex items-center justify-center bg-black/40">
+                         <span className="w-6 h-6 rounded-full border-2 border-tertiary border-t-transparent animate-spin"></span>
+                      </div>
+                    )}
+                    <img 
+                      ref={imgRef}
+                      alt="Hero Sequence" 
+                      src="/video/frames/ezgif-frame-001.jpg"
+                      className="w-full h-full object-cover opacity-80" 
+                    />
+                    
+                    {/* Scrubbing Overlay (for preview in editor) */}
+                    <div 
+                      className="absolute inset-0 z-20 cursor-ns-resize flex items-end justify-center pb-4 opacity-0 group-hover/viz:opacity-100 transition-opacity"
+                      onWheel={(e) => {
+                        e.stopPropagation();
+                        updateFrame(frameRef.current + (e.deltaY * 0.05));
+                      }}
+                    >
+                      <span className="bg-black/80 px-3 py-1 text-[10px] font-bold text-tertiary rounded-full border border-tertiary/30">SCROLL DENTRO PARA PREVIEW</span>
+                    </div>
                   </div>
                 </div>
               </section>
