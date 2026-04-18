@@ -14,6 +14,7 @@ export default function Home() {
   const [isVideoLoaded, setIsVideoLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const frameRef = useRef(1);
+  const touchStartY = useRef(0);
   const totalFrames = 40;
 
   const updateFrame = (newFrame: number) => {
@@ -63,7 +64,7 @@ export default function Home() {
         if (!isVideoLoaded) return;
         
         // Adjust scrub sensitivity for wheel (Slower)
-        const newFrame = frameRef.current + (e.deltaY * 0.05);
+        const newFrame = frameRef.current + (e.deltaY * 0.02);
         if (newFrame >= totalFrames) {
            updateFrame(totalFrames);
            setIsVideoLocked(false);
@@ -85,9 +86,8 @@ export default function Home() {
       }
     };
     
-    let touchStartY = 0;
     const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
+      touchStartY.current = e.touches[0].clientY;
     };
     
     const handleTouchMove = (e: TouchEvent) => {
@@ -97,11 +97,11 @@ export default function Home() {
         e.preventDefault();
         if (!isVideoLoaded) return;
 
-        const deltaY = touchStartY - e.touches[0].clientY;
-        touchStartY = e.touches[0].clientY;
+        const deltaY = touchStartY.current - e.touches[0].clientY;
+        touchStartY.current = e.touches[0].clientY;
         
         // Slower touch sensitivity
-        const newFrame = frameRef.current + (deltaY * 0.15);
+        const newFrame = frameRef.current + (deltaY * 0.04);
         if (newFrame >= totalFrames) {
            updateFrame(totalFrames);
            setIsVideoLocked(false);
@@ -113,13 +113,14 @@ export default function Home() {
         setIsScrolled(frameRef.current > (totalFrames / 2));
       } else {
         if (window.scrollY <= 0) {
-          const deltaY = touchStartY - e.touches[0].clientY;
+          const deltaY = touchStartY.current - e.touches[0].clientY;
           if (deltaY < 0) { // dragging down at the top
              e.preventDefault();
              setIsVideoLocked(true);
              updateFrame(Math.max(1, totalFrames - 2));
           }
         }
+        touchStartY.current = e.touches[0].clientY;
       }
     };
     
