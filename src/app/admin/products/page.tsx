@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { siteData as initialSiteData } from "@/data/siteData";
 import { supabase } from "@/lib/supabase";
 import AdminSidebar from "@/components/AdminSidebar";
+import { getCMSData, saveCMSData, deleteFileFromStorage } from "@/lib/cms";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
@@ -15,6 +16,7 @@ export default function ProductsCmsPage() {
   const [sectionsOrder, setSectionsOrder] = useState(initialSiteData.sectionsOrder);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   const [isOrderDialogOpen, setIsOrderDialogOpen] = useState(false);
   const [isChecking, setIsChecking] = useState(true);
   const router = useRouter();
@@ -69,12 +71,14 @@ export default function ProductsCmsPage() {
     }
   };
 
-  // Load from localeStorage on mount
+  // Fetch from Database on mount
   useEffect(() => {
-    const savedData = localStorage.getItem("sneyder_cms_data");
-    const savedOrder = localStorage.getItem("sneyder_cms_order");
-    if (savedData) setData(JSON.parse(savedData));
-    if (savedOrder) setSectionsOrder(JSON.parse(savedOrder));
+    const loadData = async () => {
+      const dbData = await getCMSData();
+      setData(dbData);
+      if (dbData.sectionsOrder) setSectionsOrder(dbData.sectionsOrder);
+    };
+    loadData();
 
     // Preload Frames
     const preloadFrames = async () => {
@@ -94,47 +98,119 @@ export default function ProductsCmsPage() {
     preloadFrames();
   }, []);
 
-  const saveToLocal = () => {
+  const saveToDB = async (updatedData: any, updatedOrder = sectionsOrder) => {
     setIsSaving(true);
-    localStorage.setItem("sneyder_cms_data", JSON.stringify(data));
-    localStorage.setItem("sneyder_cms_order", JSON.stringify(sectionsOrder));
-    
-    // Simulate server delay
-    setTimeout(() => {
+    try {
+      const finalData = { ...updatedData, sectionsOrder: updatedOrder };
+      await saveCMSData(finalData);
+      // Update state with the saved data
+      setData(updatedData);
+      setSectionsOrder(updatedOrder);
+      // Non-blocking toast instead of alert
+      setToast("✅ Cambios guardados con éxito.");
+      setTimeout(() => setToast(null), 3000);
+    } catch (error: any) {
+      setToast("❌ Error al guardar: " + error.message);
+      setTimeout(() => setToast(null), 5000);
+    } finally {
       setIsSaving(false);
-      alert("Cambios guardados localmente. Los verás reflejados en esta sesión.");
-    }, 800);
-  };
-
-  const deleteService = (index: number) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este servicio?")) {
-      const newServices = [...data.services];
-      newServices.splice(index, 1);
-      setData({ ...data, services: newServices });
     }
   };
 
-  const deleteModel = (index: number) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar este modelo?")) {
-      const newModels = [...data.aiModels.models];
-      newModels.splice(index, 1);
-      setData({ ...data, aiModels: { ...data.aiModels, models: newModels } });
-    }
+  const addService = () => {
+    const newServices = [
+      ...data.services,
+      {
+        icon: "category",
+        title: "Nuevo Servicio",
+        description: "Descripción del nuevo servicio...",
+        tags: ["Core", "Cloud"]
+      }
+    ];
+    const newData = { ...data, services: newServices };
+    setData(newData);
+    saveToDB(newData);
   };
 
-  const deleteCyberItem = (index: number) => {
-    if (window.confirm("¿Eliminar este ítem de seguridad?")) {
-      const newItems = [...data.cybersecurity.items];
-      newItems.splice(index, 1);
-      setData({ ...data, cybersecurity: { ...data.cybersecurity, items: newItems } });
-    }
+  const addModel = () => {
+    const newModels = [
+      ...data.aiModels.models,
+      { name: "Nuevo Modelo", sub: "Integración" }
+    ];
+    const newData = { ...data, aiModels: { ...data.aiModels, models: newModels } };
+    setData(newData);
+    saveToDB(newData);
   };
 
-  const deleteSection = (index: number) => {
-    if (window.confirm("¿Estás seguro de que deseas eliminar esta sección completa?")) {
-      const newOrder = [...sectionsOrder];
-      newOrder.splice(index, 1);
+  const addCyberItem = () => {
+    const newItems = [
+      ...data.cybersecurity.items,
+      { icon: "security", text: "Nueva Protección" }
+    ];
+    const newData = { ...data, cybersecurity: { ...data.cybersecurity, items: newItems } };
+    setData(newData);
+    saveToDB(newData);
+  };
+
+  const deleteService = async (index: number) => {
+    console.log(">>> deleteService CALLED with index:", index);
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este servicio? Se borrará permanentemente junto con su contenido multimedia.")) return;
+    
+    // Calculate new state
+    const itemToDelete = data.services[index] as any;
+    const newServices = data.services.filter((_: any, i: number) => i !== index);
+    const newData = { ...data, services: newServices };
+    
+    // Update local state (Optimistic)
+    setData(newData);
+    
+    // Cleanup storage (async background)
+    if (itemToDelete.media?.url) await deleteFileFromStorage(itemToDelete.media.url);
+    if (itemToDelete.subCards) {
+      for (const sub of (itemToDelete.subCards as any[])) {
+        if (sub.media?.url) await deleteFileFromStorage(sub.media.url);
+      }
+    }
+
+    // Persist to DB using the NEW data, not the stale 'data' state
+    await saveToDB(newData);
+  };
+
+  const deleteModel = async (index: number) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este modelo?")) return;
+    
+    const itemToDelete = data.aiModels.models[index] as any;
+    const newModels = data.aiModels.models.filter((_: any, i: number) => i !== index);
+    const newData = { ...data, aiModels: { ...data.aiModels, models: newModels } };
+    
+    setData(newData);
+
+    if (itemToDelete.media?.url) await deleteFileFromStorage(itemToDelete.media.url);
+    
+    await saveToDB(newData);
+  };
+
+  const deleteCyberItem = async (index: number) => {
+    if (!window.confirm("¿Estás seguro de que deseas eliminar este elemento de seguridad?")) return;
+    
+    const itemToDelete = data.cybersecurity.items[index] as any;
+    const newItems = data.cybersecurity.items.filter((_: any, i: number) => i !== index);
+    const newData = { ...data, cybersecurity: { ...data.cybersecurity, items: newItems } };
+    
+    setData(newData);
+    
+    if (itemToDelete.media?.url) await deleteFileFromStorage(itemToDelete.media.url);
+    
+    await saveToDB(newData);
+  };
+
+
+
+  const deleteSection = async (index: number) => {
+    if (window.confirm("¿Estás seguro de que deseas eliminar esta sección de la vista? Los datos se mantendrán pero la sección no será visible.")) {
+      const newOrder = sectionsOrder.filter((_, i) => i !== index);
       setSectionsOrder(newOrder);
+      await saveToDB(data, newOrder);
     }
   };
   const moveSection = (index: number, direction: 'up' | 'down') => {
@@ -216,14 +292,14 @@ export default function ProductsCmsPage() {
           </button>
 
           <button 
-            onClick={saveToLocal}
+            onClick={() => saveToDB(data)}
             disabled={isSaving}
             className={`flex items-center gap-2 px-6 py-2 rounded-sm font-bold uppercase tracking-widest text-xs transition-all ${
               isSaving ? "bg-slate-700 text-slate-400 cursor-not-allowed" : "bg-tertiary text-on-tertiary hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(47,217,244,0.3)]"
             }`}
           >
-            <span className="material-symbols-outlined text-sm">{isSaving ? "sync" : "save"}</span>
-            {isSaving ? "Guardando..." : "Guardar Cambios"}
+            <span className="material-symbols-outlined text-sm">{isSaving ? "sync" : "cloud_upload"}</span>
+            {isSaving ? "Guardando..." : "Guardar en la Nube"}
           </button>
 
           <Link href="/admin/profile" className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-outline-variant/15 relative block hover:scale-110 transition-transform active:scale-95">
@@ -330,7 +406,18 @@ export default function ProductsCmsPage() {
                 </div>
 
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-10">
+                <div className="flex justify-between items-center pt-10">
+                   <h2 className="text-xl font-bold font-headline uppercase tracking-tighter text-tertiary">Listado de Servicios</h2>
+                   <button 
+                    onClick={addService}
+                    className="flex items-center gap-2 px-4 py-2 bg-tertiary/10 border border-tertiary/30 text-tertiary rounded-sm font-bold uppercase tracking-widest text-[9px] hover:bg-tertiary hover:text-on-tertiary transition-all"
+                   >
+                     <span className="material-symbols-outlined text-xs">add</span>
+                     Añadir Servicio
+                   </button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                   {data.services.map((service, i) => (
                     <div 
                       key={i}
@@ -376,7 +463,18 @@ export default function ProductsCmsPage() {
                 </div>
 
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-10">
+                <div className="flex justify-between items-center pt-10 mb-6">
+                   <h2 className="text-xl font-bold font-headline uppercase tracking-tighter text-tertiary">Modelos y Tecnologías</h2>
+                   <button 
+                    onClick={addModel}
+                    className="flex items-center gap-2 px-4 py-2 bg-tertiary/10 border border-tertiary/30 text-tertiary rounded-sm font-bold uppercase tracking-widest text-[9px] hover:bg-tertiary hover:text-on-tertiary transition-all"
+                   >
+                     <span className="material-symbols-outlined text-xs">add</span>
+                     Añadir Modelo
+                   </button>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div className="bg-surface-container p-10 rounded-sm inner-glow-top border border-dashed border-tertiary/10 relative group/inner">
                     <span className="material-symbols-outlined text-tertiary mb-6 text-4xl">auto_awesome</span>
                     <h3 className="font-headline text-3xl font-bold mb-4">{data.aiModels.title}</h3>
@@ -433,7 +531,16 @@ export default function ProductsCmsPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 pt-10 items-center">
                   <div>
-                    <h2 className="font-headline text-4xl font-bold mb-6">{data.cybersecurity.title}</h2>
+                    <div className="flex justify-between items-center mb-6">
+                       <h2 className="font-headline text-4xl font-bold">{data.cybersecurity.title}</h2>
+                       <button 
+                        onClick={addCyberItem}
+                        className="flex items-center gap-2 px-4 py-2 bg-tertiary/10 border border-tertiary/30 text-tertiary rounded-sm font-bold uppercase tracking-widest text-[9px] hover:bg-tertiary hover:text-on-tertiary transition-all"
+                       >
+                         <span className="material-symbols-outlined text-xs">add</span>
+                         Añadir Protección
+                       </button>
+                    </div>
                     <p className="text-on-surface-variant mb-8">{data.cybersecurity.description}</p>
                     <div className="space-y-4">
                       {data.cybersecurity.items.map((item, i) => (
@@ -492,7 +599,19 @@ export default function ProductsCmsPage() {
           })}
         </div>
 
-        <button className="w-full mt-32 py-10 border-2 border-dashed border-tertiary/10 rounded-sm hover:border-tertiary/30 hover:bg-tertiary/5 transition-all text-tertiary/50 hover:text-tertiary group flex flex-col items-center gap-2">
+        <button 
+          onClick={() => {
+            const sectionId = window.prompt("Ingresa el ID de la sección (ej: hero, services, ai, cyber, cta):");
+            if (sectionId && !sectionsOrder.includes(sectionId)) {
+               const newOrder = [...sectionsOrder, sectionId];
+               setSectionsOrder(newOrder);
+               saveToDB(data, newOrder);
+            } else if (sectionId) {
+               alert("La sección ya existe en el orden actual.");
+            }
+          }}
+          className="w-full mt-32 py-10 border-2 border-dashed border-tertiary/10 rounded-sm hover:border-tertiary/30 hover:bg-tertiary/5 transition-all text-tertiary/50 hover:text-tertiary group flex flex-col items-center gap-2"
+        >
           <span className="material-symbols-outlined text-4xl group-hover:scale-110 transition-transform">add_box</span>
           <span className="font-bold text-xs uppercase tracking-widest">Añadir Nueva Sección</span>
         </button>
@@ -567,6 +686,13 @@ export default function ProductsCmsPage() {
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <div className="fixed bottom-6 right-6 z-[100] bg-surface-container-high border border-tertiary/30 text-white px-6 py-3 rounded-sm shadow-[0_0_30px_rgba(47,217,244,0.2)] animate-slide-up text-sm font-bold tracking-wide">
+          {toast}
         </div>
       )}
     </div>

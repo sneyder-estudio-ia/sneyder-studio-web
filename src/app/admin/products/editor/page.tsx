@@ -4,8 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect, Suspense, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import { siteData as initialSiteData } from "@/data/siteData";
 import { supabase } from "@/lib/supabase";
+import { getCMSData, saveCMSData, deleteFileFromStorage } from "@/lib/cms";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
@@ -15,7 +15,7 @@ function EditorContent() {
   const section = searchParams.get("section");
   const index = searchParams.get("index");
 
-  const [data, setData] = useState(initialSiteData);
+  const [data, setData] = useState<any>(null);
   const [item, setItem] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -41,40 +41,42 @@ function EditorContent() {
   }, [router]);
 
   useEffect(() => {
-    const savedData = localStorage.getItem("sneyder_cms_data");
-    const currentData = savedData ? JSON.parse(savedData) : initialSiteData;
-    setData(currentData);
+    const loadData = async () => {
+      const currentData = await getCMSData();
+      setData(currentData);
 
-    if (section) {
-      let target: any = null;
-      const dataKey = section === 'ai' ? 'aiModels' : (section === 'cyber' ? 'cybersecurity' : section);
-      
-      if (index !== null) {
-        const idx = parseInt(index);
-        if (section === 'services') target = currentData.services?.[idx];
-        if (section === 'ai') target = currentData.aiModels?.models?.[idx];
-        if (section === 'cyber') target = currentData.cybersecurity?.items?.[idx];
-      } else {
-        target = (currentData as any)[dataKey];
-      }
+      if (section) {
+        let target: any = null;
+        const dataKey = section === 'ai' ? 'aiModels' : (section === 'cyber' ? 'cybersecurity' : section);
+        
+        if (index !== null) {
+          const idx = parseInt(index);
+          if (section === 'services') target = currentData.services?.[idx];
+          if (section === 'ai') target = currentData.aiModels?.models?.[idx];
+          if (section === 'cyber') target = currentData.cybersecurity?.items?.[idx];
+        } else {
+          target = (currentData as any)[dataKey];
+        }
 
-      if (target) {
-        const normalized = {
-          ...target,
-          title: target.title || target.name || "",
-          description: target.description || target.sub || target.text || "",
-          buttons: target.buttons || [],
-          media: target.media || { type: 'image', url: '/video/frames/ezgif-frame-001.jpg' },
-          icon: target.icon || "category",
-          subCards: target.subCards || [],
-        };
-        setItem(normalized);
+        if (target) {
+          const normalized = {
+            ...target,
+            title: target.title || target.name || "",
+            description: target.description || target.sub || target.text || "",
+            buttons: target.buttons || [],
+            media: target.media || { type: 'image', url: '/video/frames/ezgif-frame-001.jpg' },
+            icon: target.icon || "category",
+            subCards: target.subCards || [],
+          };
+          setItem(normalized);
+        }
       }
-    }
-    setLoading(false);
+      setLoading(false);
+    };
+    loadData();
   }, [section, index]);
 
-  // --- File Upload to Supabase Storage ---
+
   const uploadFile = useCallback(async (file: File): Promise<string | null> => {
     const allowedImageTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'];
     const allowedVideoTypes = ['video/mp4', 'video/webm', 'video/ogg', 'video/quicktime'];
@@ -91,14 +93,16 @@ function EditorContent() {
       return null;
     }
 
+    const isVideo = file.type.startsWith('video/');
+    const bucket = isVideo ? 'videos' : 'images';
     const ext = file.name.split('.').pop();
-    const fileName = `cms/${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
 
     setUploading(true);
     setUploadProgress("Subiendo archivo...");
 
     const { data: uploadData, error } = await supabase.storage
-      .from('media')
+      .from(bucket)
       .upload(fileName, file, {
         cacheControl: '3600',
         upsert: false,
@@ -113,7 +117,7 @@ function EditorContent() {
     }
 
     const { data: urlData } = supabase.storage
-      .from('media')
+      .from(bucket)
       .getPublicUrl(uploadData.path);
 
     setUploading(false);
@@ -200,32 +204,38 @@ function EditorContent() {
     }
   };
 
-  const handleSave = () => {
-    const newData = { ...data };
-    const dataKey = section === 'ai' ? 'aiModels' : (section === 'cyber' ? 'cybersecurity' : section);
-    
-    const processedItem = { ...item };
-    if (section === 'ai' && index !== null) {
-      processedItem.name = item.title;
-      processedItem.sub = item.description;
-    }
-    if (section === 'cyber' && index !== null) {
-      processedItem.text = item.description;
-    }
+  const handleSave = async () => {
+    setUploading(true); // Reuse uploading state to show loading on button
+    try {
+      const newData = { ...data };
+      const dataKey = section === 'ai' ? 'aiModels' : (section === 'cyber' ? 'cybersecurity' : section);
+      
+      const processedItem = { ...item };
+      if (section === 'ai' && index !== null) {
+        processedItem.name = item.title;
+        processedItem.sub = item.description;
+      }
+      if (section === 'cyber' && index !== null) {
+        processedItem.text = item.description;
+      }
 
-    if (section && index !== null) {
-      const idx = parseInt(index);
-      if (section === 'services') newData.services[idx] = processedItem;
-      if (section === 'ai') newData.aiModels.models[idx] = processedItem;
-      if (section === 'cyber') newData.cybersecurity.items[idx] = processedItem;
-    } else if (section) {
-      (newData as any)[dataKey!] = processedItem;
-    }
+      if (section && index !== null) {
+        const idx = parseInt(index);
+        if (section === 'services') newData.services[idx] = processedItem;
+        if (section === 'ai') newData.aiModels.models[idx] = processedItem;
+        if (section === 'cyber') newData.cybersecurity.items[idx] = processedItem;
+      } else if (section) {
+        (newData as any)[dataKey!] = processedItem;
+      }
 
-    localStorage.setItem("sneyder_cms_data", JSON.stringify(newData));
-    
-    alert("Cambios guardados con éxito.");
-    router.push("/admin/products");
+      await saveCMSData(newData);
+      alert("Cambios guardados con éxito en la base de datos.");
+      router.push("/admin/products");
+    } catch (err: any) {
+      alert("Error al guardar: " + err.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const updateItem = (key: string, value: any) => {
@@ -238,8 +248,12 @@ function EditorContent() {
   };
 
   const removeButton = (idx: number) => {
-    const newButtons = item.buttons.filter((_: any, i: number) => i !== idx);
-    updateItem("buttons", newButtons);
+    if (!window.confirm("¿Eliminar este botón?")) return;
+    
+    setItem((prev: any) => {
+      const newButtons = prev.buttons.filter((_: any, i: number) => i !== idx);
+      return { ...prev, buttons: newButtons };
+    });
   };
 
   const updateButton = (idx: number, key: string, value: string) => {
@@ -263,11 +277,23 @@ function EditorContent() {
     setEditingSubCard(newSubCards.length - 1);
   };
 
-  const removeSubCard = (idx: number) => {
-    if (window.confirm("¿Eliminar esta sub-tarjeta?")) {
-      const newSubCards = (item.subCards || []).filter((_: any, i: number) => i !== idx);
-      updateItem("subCards", newSubCards);
-      if (editingSubCard === idx) setEditingSubCard(null);
+  const removeSubCard = async (idx: number) => {
+    if (!window.confirm("¿Eliminar esta sub-tarjeta? Se borrará permanentemente junto con su contenido multimedia.")) return;
+    
+    const subCardToDelete = item.subCards?.[idx];
+    const mediaUrl = subCardToDelete?.media?.url;
+    
+    // Immediate state update
+    setItem((prev: any) => {
+      const newSubCards = (prev.subCards || []).filter((_: any, i: number) => i !== idx);
+      return { ...prev, subCards: newSubCards };
+    });
+    
+    if (editingSubCard === idx) setEditingSubCard(null);
+
+    // Background storage cleanup
+    if (mediaUrl) {
+      await deleteFileFromStorage(mediaUrl);
     }
   };
 
@@ -558,7 +584,15 @@ function EditorContent() {
             {/* Remove media button */}
             {item.media.url && (
               <button
-                onClick={() => updateItem("media", { ...item.media, url: '' })}
+                onClick={async () => {
+                  if (window.confirm("¿Eliminar este archivo multimedia de la base de datos?")) {
+                    const urlToDelete = item.media.url;
+                    // Update state immediately
+                    setItem((prev: any) => ({ ...prev, media: { ...prev.media, url: '' } }));
+                    // Background cleanup
+                    if (urlToDelete) await deleteFileFromStorage(urlToDelete);
+                  }
+                }}
                 className="text-[9px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors flex items-center gap-2 mt-2"
               >
                 <span className="material-symbols-outlined text-sm">delete</span>
@@ -712,7 +746,15 @@ function EditorContent() {
 
                         {sub.media?.url && (
                           <button
-                            onClick={() => updateSubCard(idx, "media", { type: 'image', url: '' })}
+                            onClick={async () => {
+                              if (window.confirm("¿Eliminar multimedia de esta sub-tarjeta? Se borrará de la base de datos.")) {
+                                const urlToDelete = sub.media.url;
+                                const newSubCards = [...(item.subCards || [])];
+                                newSubCards[idx] = { ...newSubCards[idx], media: { type: 'image', url: '' } };
+                                updateItem("subCards", newSubCards);
+                                await deleteFileFromStorage(urlToDelete);
+                              }
+                            }}
                             className="text-[8px] font-bold uppercase tracking-widest text-red-400 hover:text-red-300 transition-colors flex items-center gap-1 mt-1"
                           >
                             <span className="material-symbols-outlined text-xs">close</span>

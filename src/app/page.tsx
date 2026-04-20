@@ -4,13 +4,13 @@ import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { supabase } from '@/lib/supabase';
-import { siteData as initialSiteData } from "@/data/siteData";
+import { getCMSData } from "@/lib/cms";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
 export default function Home() {
-  const [data, setData] = useState(initialSiteData);
-  const [sectionsOrder, setSectionsOrder] = useState(initialSiteData.sectionsOrder);
+  const [data, setData] = useState<any>(null);
+  const [sectionsOrder, setSectionsOrder] = useState<string[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
@@ -34,6 +34,13 @@ export default function Home() {
   };
 
   useEffect(() => {
+    const loadContent = async () => {
+      const dbData = await getCMSData();
+      setData(dbData);
+      if (dbData.sectionsOrder) setSectionsOrder(dbData.sectionsOrder);
+    };
+    loadContent();
+    
     const preloadImg = new window.Image();
     preloadImg.src = `/video/frames/ezgif-frame-001.jpg`;
     preloadImg.onload = () => setIsVideoLoaded(true);
@@ -173,12 +180,11 @@ export default function Home() {
     };
   }, [isVideoLocked, isVideoLoaded, showAuthModal]);
 
-  useEffect(() => {
-    const savedData = localStorage.getItem("sneyder_cms_data");
-    const savedOrder = localStorage.getItem("sneyder_cms_order");
-    if (savedData) setData(JSON.parse(savedData));
-    if (savedOrder) setSectionsOrder(JSON.parse(savedOrder));
+  const [showVerificationToast, setShowVerificationToast] = useState(false);
 
+  useEffect(() => {
+    // Content is now loaded via loadContent in the main useEffect
+    
     // Supabase Auth Listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user || null;
@@ -208,6 +214,15 @@ export default function Home() {
   };
 
 
+
+  if (!data) return (
+    <div className="bg-background min-h-screen flex items-center justify-center text-center px-6">
+       <div className="flex flex-col items-center gap-6">
+          <div className="w-16 h-16 border-4 border-tertiary border-t-transparent animate-spin rounded-full"></div>
+          <span className="text-tertiary font-bold tracking-[0.5em] uppercase text-[10px] animate-pulse">Sneyder Studio está iniciando...</span>
+       </div>
+    </div>
+  );
 
   return (
     <div className="text-on-background selection:bg-tertiary/30 selection:text-tertiary min-h-screen bg-background relative overflow-x-hidden">
@@ -403,7 +418,7 @@ export default function Home() {
                           {data.services[0].description}
                         </p>
                         <div className="flex flex-wrap gap-3">
-                          {data.services[0].tags?.map((tag, i) => (
+                          {data.services[0].tags?.map((tag: any, i: number) => (
                             <span key={i} className="px-3 py-1 bg-surface-container-highest text-primary text-[10px] font-bold uppercase rounded-full">{tag}</span>
                           ))}
                         </div>
@@ -417,7 +432,7 @@ export default function Home() {
                           {data.services[1].description}
                         </p>
                         <ul className="space-y-4 text-xs font-bold uppercase tracking-wider text-slate-400">
-                          {data.services[1].items?.map((item, i) => (
+                          {data.services[1].items?.map((item: any, i: number) => (
                             <li key={i} className="flex items-center gap-3"><span className="w-1.5 h-1.5 bg-cyan-400"></span> {item}</li>
                           ))}
                         </ul>
@@ -436,7 +451,7 @@ export default function Home() {
                         {data.aiModels.description}
                       </p>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                        {data.aiModels.models.map((model, i) => (
+                        {data.aiModels.models.map((model: any, i: number) => (
                           <div key={i} className="bg-surface-container-lowest p-4 rounded-sm border border-outline-variant/10 text-center hover:border-tertiary/30 transition-colors cursor-default">
                             <p className="font-headline text-sm font-bold text-white mb-1">{model.name}</p>
                             <p className="text-[9px] text-cyan-400 uppercase tracking-widest">{model.sub}</p>
@@ -474,7 +489,7 @@ export default function Home() {
                           {data.cybersecurity.description}
                         </p>
                         <div className="space-y-6">
-                          {data.cybersecurity.items.map((item, i) => (
+                          {data.cybersecurity.items.map((item: any, i: number) => (
                             <div key={i} className="flex items-center gap-4 group/item">
                               <div className="w-12 h-12 rounded-sm bg-surface-container-high border border-outline-variant/20 flex items-center justify-center group-hover/item:border-tertiary/50 transition-colors">
                                 <span className="material-symbols-outlined text-tertiary">{item.icon}</span>
@@ -556,19 +571,50 @@ export default function Home() {
           onClose={() => setShowAuthModal(false)} 
           initialView={authView}
           setView={setAuthView}
+          setShowVerificationToast={setShowVerificationToast}
         />
+      )}
+
+      {/* Floating Verification Window */}
+      {showVerificationToast && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm animate-fade-in" 
+            onClick={() => setShowVerificationToast(false)} 
+          />
+          <div className="w-full max-w-sm bg-[#0c1324] border border-cyan-400/30 rounded-2xl shadow-[0_20px_50px_rgba(47,217,244,0.3)] p-8 animate-slide-up backdrop-blur-2xl relative pointer-events-auto">
+            <div className="absolute top-0 left-0 w-full h-1 bg-cyan-400 shadow-[0_0_15px_rgba(47,217,244,0.5)] rounded-t-2xl"></div>
+            
+            <div className="flex flex-col items-center text-center space-y-4">
+              <div className="w-16 h-16 bg-cyan-400/20 rounded-full flex items-center justify-center mb-2 border border-cyan-400/40">
+                <span className="material-symbols-outlined text-cyan-400 text-3xl animate-pulse">mark_email_unread</span>
+              </div>
+              
+              <h4 className="text-xl font-headline font-black text-white">Verificar Correo</h4>
+              <p className="text-sm text-slate-300 font-body leading-relaxed">
+                Hemos enviado un enlace de confirmación a tu correo. Por favor, revísalo para verificar tu cuenta y continuar.
+              </p>
+              
+              <button 
+                onClick={() => setShowVerificationToast(false)}
+                className="w-full bg-cyan-400/10 border border-cyan-400/30 text-cyan-400 py-3 rounded-lg font-bold uppercase tracking-wider text-[10px] hover:bg-cyan-400 hover:text-on-cyan-400 transition-all mt-4"
+              >
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
 }
 
 // User Authentication Modal (Login / Register)
-function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean; onClose: () => void; initialView: 'login' | 'register'; setView: (view: 'login' | 'register') => void }) {
+function AuthModal({ isOpen, onClose, initialView, setView, setShowVerificationToast }: { isOpen: boolean; onClose: () => void; initialView: 'login' | 'register'; setView: (view: 'login' | 'register') => void; setShowVerificationToast: (val: boolean) => void }) {
   const [isEmailFocused, setIsEmailFocused] = useState(false);
   const [isPasswordFocused, setIsPasswordFocused] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showVerificationToast, setShowVerificationToast] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -604,7 +650,10 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
           password: formData.password,
           options: {
             data: {
-              full_name: formData.managerName,
+              manager_name: formData.managerName,
+              company_name: formData.companyName,
+              whatsapp: formData.whatsapp,
+              full_name: formData.managerName, // Optional, for compatibility
             }
           }
         });
@@ -612,23 +661,9 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
         if (authError) throw authError;
 
         if (authData.user) {
-          // Store extra info in profiles table
-          const { error: profileError } = await supabase
-            .from('profiles')
-            .upsert({
-                id: authData.user.id,
-                manager_name: formData.managerName,
-                company_name: formData.companyName,
-                whatsapp: formData.whatsapp,
-                email: formData.email,
-                updated_at: new Date().toISOString(),
-              }, { onConflict: 'id' });
-
-          if (profileError) {
-            console.error("Profile creation error:", profileError);
-            // We don't throw here to avoid blocking the user if the record already exists or RLS is tricky
-            // but we should at least log it.
-          }
+          // No manual upsert needed here anymore as the Database Trigger (handle_new_user) 
+          // automatically creates the profile with SECURITY DEFINER privileges.
+          // Manual upsert would fail due to RLS if the user is not yet verified/logged in.
           
           setShowVerificationToast(true);
           onClose(); // Close modal on success
@@ -880,32 +915,7 @@ function AuthModal({ isOpen, onClose, initialView, setView }: { isOpen: boolean;
         </div>
       </div>
 
-      {/* Floating Verification Window */}
-      {showVerificationToast && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 pointer-events-none">
-          <div className="w-full max-w-sm bg-surface/95 border border-tertiary/30 rounded-2xl shadow-[0_20px_50px_rgba(47,217,244,0.3)] p-8 animate-slide-up backdrop-blur-2xl pointer-events-auto relative">
-            <div className="absolute top-0 left-0 w-full h-1 bg-tertiary shadow-[0_0_15px_rgba(47,217,244,0.5)] rounded-t-2xl"></div>
-            
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 bg-tertiary/20 rounded-full flex items-center justify-center mb-2 border border-tertiary/40">
-                <span className="material-symbols-outlined text-tertiary text-3xl animate-pulse">mark_email_unread</span>
-              </div>
-              
-              <h4 className="text-xl font-headline font-black text-white">Verificar Correo</h4>
-              <p className="text-sm text-slate-300 font-body leading-relaxed">
-                Por favor, revisa tu bandeja de entrada para verificar tu correo y continuar.
-              </p>
-              
-              <button 
-                onClick={() => setShowVerificationToast(false)}
-                className="w-full bg-tertiary/10 border border-tertiary/30 text-tertiary py-3 rounded-lg font-bold uppercase tracking-wider text-[10px] hover:bg-tertiary hover:text-on-tertiary transition-all mt-4"
-              >
-                Cerrar Ventana
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Verification Window placeholder moved to Home */}
       </div>
     </div>
   );
