@@ -351,22 +351,31 @@ function EditorContent() {
       `}</style>
 
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 glass-panel h-20 flex items-center justify-between px-8 border-b border-white/5">
-        <div className="flex items-center gap-6">
-          <Link href="/admin/products">
-            <button className="text-tertiary hover:scale-110 transition-transform flex items-center gap-2 group">
-              <span className="material-symbols-outlined">arrow_back</span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] hidden md:block group-hover:translate-x-1 transition-transform">Regresar</span>
-            </button>
-          </Link>
-          <div className="h-8 w-[1px] bg-white/10 hidden md:block"></div>
-          <div>
-            <h1 className="text-xl font-bold font-headline text-white tracking-tight uppercase">Editor de Tarjeta</h1>
-            <p className="text-[9px] text-tertiary font-bold tracking-[0.3em] uppercase opacity-70">Sneyder Studio CMS v2.0</p>
+      <header className="fixed top-0 w-full z-50 glass-panel h-auto md:h-20 flex flex-col md:flex-row items-center justify-between px-4 md:px-8 border-b border-white/5 py-2 md:py-0">
+        <div className="flex items-center justify-between w-full md:w-auto h-12 md:h-full gap-4">
+          <div className="flex items-center gap-4 md:gap-6">
+            <Link href="/admin/products">
+              <button className="text-tertiary hover:scale-110 transition-transform flex items-center gap-2 group">
+                <span className="material-symbols-outlined">arrow_back</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] hidden md:block group-hover:translate-x-1 transition-transform">Regresar</span>
+              </button>
+            </Link>
+            <div className="h-8 w-[1px] bg-white/10 hidden md:block"></div>
+            <div>
+              <h1 className="text-base md:text-xl font-bold font-headline text-white tracking-tight uppercase truncate max-w-[150px] md:max-w-none">Editor de Tarjeta</h1>
+              <p className="text-[8px] md:text-[9px] text-tertiary font-bold tracking-[0.3em] uppercase opacity-70">Sneyder Studio CMS v2.0</p>
+            </div>
           </div>
+
+          <button 
+            onClick={handleSave}
+            className="md:hidden glow-button bg-tertiary text-on-tertiary p-2 rounded-full font-bold transition-all flex items-center justify-center shrink-0"
+          >
+            <span className="material-symbols-outlined text-sm">check_circle</span>
+          </button>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-4">
           <button 
             onClick={handleSave}
             className="glow-button bg-tertiary text-on-tertiary px-8 py-3 rounded-sm font-bold tracking-[0.1em] text-xs uppercase hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
@@ -377,7 +386,7 @@ function EditorContent() {
         </div>
       </header>
 
-      <main className="pt-32 pb-20 px-8 grid grid-cols-1 lg:grid-cols-2 gap-12 max-w-[1700px] mx-auto">
+      <main className="pt-40 md:pt-32 pb-20 px-4 md:px-8 grid grid-cols-1 lg:grid-cols-2 gap-8 md:gap-12 max-w-[1700px] mx-auto">
         
         {/* Left: Controls */}
         <div className="space-y-10">

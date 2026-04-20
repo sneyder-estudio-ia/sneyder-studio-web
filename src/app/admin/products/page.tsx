@@ -266,23 +266,45 @@ export default function ProductsCmsPage() {
       `}</style>
 
       {/* TopAppBar */}
-      <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/60 backdrop-blur-xl shadow-[0px_20px_50px_rgba(12,19,36,0.4)] flex justify-between items-center px-6 h-16 bg-gradient-to-b from-[#89ceff]/5 to-transparent transition-all duration-500 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all p-2 rounded"
-          >
-            <span className="material-symbols-outlined">{isMenuOpen ? "close" : "menu"}</span>
-          </button>
-          <Link href="/admin">
-            <button className="text-[#89ceff]">
-              <span className="material-symbols-outlined">arrow_back</span>
+      <header className={`fixed top-0 w-full z-[60] bg-[#0c1324]/80 backdrop-blur-xl shadow-[0px_20px_50px_rgba(12,19,36,0.4)] flex flex-col md:flex-row justify-between items-center px-4 md:px-6 h-auto md:h-16 bg-gradient-to-b from-[#89ceff]/5 to-transparent transition-all duration-500 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
+        <div className="flex items-center justify-between w-full md:w-auto h-16 md:h-full gap-2 md:gap-4">
+          <div className="flex items-center gap-2 md:gap-4">
+            <button 
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all p-2 rounded"
+            >
+              <span className="material-symbols-outlined">{isMenuOpen ? "close" : "menu"}</span>
             </button>
-          </Link>
-          <span className="text-xl font-bold tracking-tighter text-[#2fd9f4] font-headline uppercase">editar prinsipal</span>
+            <Link href="/admin">
+              <button className="text-[#89ceff] p-2">
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+            </Link>
+            <span className="text-sm md:text-xl font-bold tracking-tighter text-[#2fd9f4] font-headline uppercase truncate max-w-[120px] md:max-w-none">editar prinsipal</span>
+          </div>
+
+          <div className="flex items-center gap-2 md:hidden">
+            <button 
+              onClick={() => saveToDB(data)}
+              disabled={isSaving}
+              className={`p-2 rounded-full transition-all ${
+                isSaving ? "bg-slate-700 text-slate-400" : "bg-tertiary text-on-tertiary shadow-[0_0_15px_rgba(47,217,244,0.3)]"
+              }`}
+            >
+              <span className="material-symbols-outlined text-sm">{isSaving ? "sync" : "cloud_upload"}</span>
+            </button>
+            <Link href="/admin/profile" className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-outline-variant/15 relative block shadow-lg shadow-tertiary/10">
+              <Image 
+                alt="Perfil" 
+                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAzwkrverNl3WcBRKDtxiU35dKPAxR7_0cX_VUuKgthuJAmHjwu9XDtujDXdNpFheT-w-LGZiclzpDizH9EFrP2gH0p1bbHPEI8DJYLsVXjQ9XOaEobrIZXFZpPRQNscKFJG6KVJyZSkoy1idSgpQ0I3f1fpqd6OuDBX_M97O2Ky7mhPQUvwAKjwTmhnpRBUML054mTTXvShio2ewZojfVoMk_VlYuCwCPwGqaFr58EPenWn1yNDqV_MygtAlEUaB8aa1gq6DjxzpY"
+                fill
+                className="object-cover"
+              />
+            </Link>
+          </div>
         </div>
         
-        <div className="flex items-center gap-6">
+        <div className="hidden md:flex items-center gap-6">
           <button 
             onClick={() => setIsOrderDialogOpen(true)}
             className="flex items-center gap-2 px-4 py-2 rounded-sm font-bold uppercase tracking-widest text-[10px] bg-slate-800/50 text-[#89ceff] border border-[#89ceff]/20 hover:bg-[#89ceff]/10 transition-all active:scale-95"
@@ -316,12 +338,12 @@ export default function ProductsCmsPage() {
       <AdminSidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
 
       <main 
-        className={`max-w-7xl mx-auto px-6 pt-32 pb-20 transition-all duration-500 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}
+        className={`max-w-7xl mx-auto px-4 md:px-6 pt-24 md:pt-32 pb-20 transition-all duration-500 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}
       >
 
-        <div className="mb-12 bg-tertiary/10 border border-tertiary/30 p-4 rounded-sm flex items-center gap-4">
-          <span className="material-symbols-outlined text-tertiary">info</span>
-          <p className="text-xs font-bold uppercase tracking-widest text-tertiary">Modo Editor: Gestiona tu contenido de forma directa. Usa los iconos para editar o eliminar elementos.</p>
+        <div className="mb-12 bg-tertiary/10 border border-tertiary/30 p-3 md:p-4 rounded-sm flex items-center gap-3 md:gap-4">
+          <span className="material-symbols-outlined text-tertiary text-sm md:text-base">info</span>
+          <p className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-tertiary">Modo Editor: Gestiona tu contenido de forma directa. Usa los iconos para editar o eliminar elementos.</p>
         </div>
 
 
@@ -331,19 +353,19 @@ export default function ProductsCmsPage() {
             if (sectionId === 'hero') return (
               <section 
                 key={sectionId}
-                className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
+                className="grid grid-cols-1 lg:grid-cols-12 gap-8 md:gap-12 items-center relative border border-dashed p-4 md:p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
                 {/* Section Number Badge */}
                 <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
                   {sIdx + 1}
                 </div>
 
-                <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                  <Link href="/admin/products/editor?section=hero">
-                    <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all shadow-lg"><span className="material-symbols-outlined text-sm">edit</span></button>
-                  </Link>
-                  <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg"><span className="material-symbols-outlined text-sm">delete</span></button>
-                </div>
+                  <div className="absolute top-4 right-4 flex gap-2 z-20">
+                    <Link href="/admin/products/editor?section=hero">
+                      <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all shadow-lg"><span className="material-symbols-outlined text-sm">edit</span></button>
+                    </Link>
+                    <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg"><span className="material-symbols-outlined text-sm">delete</span></button>
+                  </div>
 
 
                 <div className="lg:col-span-7">
@@ -391,19 +413,19 @@ export default function ProductsCmsPage() {
             if (sectionId === 'services') return (
               <section 
                 key={sectionId}
-                className="relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
+                className="relative border border-dashed p-4 md:p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
                 {/* Section Number Badge */}
                 <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
                   {sIdx + 1}
                 </div>
 
-                <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Link href="/admin/products/editor?section=services">
-                    <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
-                  </Link>
-                  <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
-                </div>
+                  <div className="absolute top-4 right-4 flex gap-2 z-20">
+                    <Link href="/admin/products/editor?section=services">
+                      <button className="p-2 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-sm">edit</span></button>
+                    </Link>
+                    <button onClick={() => deleteSection(sIdx)} className="p-2 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-sm">delete</span></button>
+                  </div>
 
 
                 <div className="flex justify-between items-center pt-10">
@@ -428,12 +450,12 @@ export default function ProductsCmsPage() {
                         {i + 1}
                       </div>
 
-                      <div className="absolute top-4 right-4 flex gap-2 z-20 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
-                        <Link href={`/admin/products/editor?section=services&index=${i}`}>
-                          <button className="p-1.5 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-xs">edit</span></button>
-                        </Link>
-                        <button onClick={() => deleteService(i)} className="p-1.5 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-xs">delete</span></button>
-                      </div>
+                        <div className="absolute top-4 right-4 flex gap-2 z-20">
+                          <Link href={`/admin/products/editor?section=services&index=${i}`}>
+                            <button className="p-1.5 bg-black/60 rounded border border-white/20 text-white hover:bg-tertiary transition-all"><span className="material-symbols-outlined text-xs">edit</span></button>
+                          </Link>
+                          <button onClick={() => deleteService(i)} className="p-1.5 bg-black/60 rounded border border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white transition-all"><span className="material-symbols-outlined text-xs">delete</span></button>
+                        </div>
 
                       <span className="material-symbols-outlined text-tertiary mb-6 text-4xl">{service.icon}</span>
                       <h3 className="font-headline text-3xl font-bold mb-4">{service.title}</h3>
@@ -448,7 +470,7 @@ export default function ProductsCmsPage() {
             if (sectionId === 'ai') return (
               <section 
                 key={sectionId}
-                className="relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
+                className="relative border border-dashed p-4 md:p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
                 {/* Section Number Badge */}
                 <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
@@ -514,7 +536,7 @@ export default function ProductsCmsPage() {
             if (sectionId === 'cyber') return (
               <section 
                 key={sectionId}
-                className="relative border border-dashed p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
+                className="relative border border-dashed p-4 md:p-8 rounded-sm group transition-all duration-300 select-none border-tertiary/20"
               >
                 {/* Section Number Badge */}
                 <div className="absolute -top-3 -left-3 w-8 h-8 bg-tertiary text-on-tertiary rounded-full flex items-center justify-center font-bold shadow-[0_0_15px_rgba(47,217,244,0.5)] z-30 border border-white/20 select-none">
