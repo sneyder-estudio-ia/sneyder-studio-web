@@ -4,7 +4,9 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { doc, getDoc, setDoc } from "firebase/firestore";
 
 export default function ClientProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -21,63 +23,66 @@ export default function ClientProfilePage() {
   });
 
   useEffect(() => {
-    const loadProfile = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user) {
-        router.replace('/');
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
+        if (!isLoading) router.replace('/');
         return;
       }
-      setUser(session.user);
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (profile) {
-        setFormData({
-          manager_name: profile.manager_name || session.user.user_metadata?.full_name || "",
-          company_name: profile.company_name || "",
-          whatsapp: profile.whatsapp || "",
-        });
-      } else {
-        setFormData({
-          manager_name: session.user.user_metadata?.full_name || "",
-          company_name: "",
-          whatsapp: "",
-        });
+      setUser(currentUser);
+      
+      try {
+        const profileDoc = await getDoc(doc(db, 'profiles', currentUser.uid));
+        if (profileDoc.exists()) {
+          const profile = profileDoc.data();
+          setFormData({
+            manager_name: profile.manager_name || currentUser.displayName || "",
+            company_name: profile.company_name || "",
+            whatsapp: profile.whatsapp || "",
+          });
+        } else {
+          setFormData({
+            manager_name: currentUser.displayName || "",
+            company_name: "",
+            whatsapp: "",
+          });
+        }
+      } catch (err) {
+        console.error("Error loading profile:", err);
+      } finally {
+        setIsLoading(false);
       }
-      setIsLoading(false);
-    };
-    loadProfile();
-  }, [router]);
+    });
+
+    return () => unsubscribe();
+  }, [router, isLoading]);
 
   const handleSave = async () => {
     if (!user) return;
     setIsSaving(true);
     setSaveMessage(null);
 
-    const { error } = await supabase
-      .from('profiles')
-      .upsert({
-        id: user.id,
+    try {
+      await setDoc(doc(db, 'profiles', user.uid), {
+        id: user.uid,
         manager_name: formData.manager_name,
         company_name: formData.company_name,
         whatsapp: formData.whatsapp,
-      });
+        email: user.email,
+        updated_at: new Date().toISOString()
+      }, { merge: true });
 
-    if (error) {
-      setSaveMessage("Error al guardar: " + error.message);
-    } else {
       setSaveMessage("Perfil actualizado correctamente");
       setIsEditing(false);
+    } catch (error: any) {
+      setSaveMessage("Error al guardar: " + error.message);
+    } finally {
+      setIsSaving(false);
+      setTimeout(() => setSaveMessage(null), 3000);
     }
-    setIsSaving(false);
-    setTimeout(() => setSaveMessage(null), 3000);
   };
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut();
+    await signOut(auth);
     router.replace('/');
   };
 
@@ -92,7 +97,7 @@ export default function ClientProfilePage() {
     );
   }
 
-  const displayName = formData.manager_name || user?.email?.split('@')[0] || "Usuario";
+  const displayName = formData.manager_name || user?.displayName || user?.email?.split('@')[0] || "Usuario";
 
   return (
     <div className="bg-[#0a0e1a] text-white min-h-screen selection:bg-cyan-400/30">
@@ -154,9 +159,9 @@ export default function ClientProfilePage() {
           
           <div className="flex items-center gap-5">
             <div className="w-20 h-20 rounded-full bg-slate-800 border-2 border-cyan-400/30 flex items-center justify-center overflow-hidden shrink-0">
-              {user?.user_metadata?.avatar_url ? (
+              {user?.photoURL ? (
                 <Image
-                  src={user.user_metadata.avatar_url}
+                  src={user.photoURL}
                   alt="Avatar"
                   width={80}
                   height={80}

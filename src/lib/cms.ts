@@ -1,93 +1,94 @@
-import { supabase } from "./supabase";
+import { db, storage } from "./firebase";
 import { siteData } from "@/data/siteData";
+import { doc, getDoc, setDoc, getDocFromCache, getDocFromServer } from "firebase/firestore";
+import { ref, deleteObject } from "firebase/storage";
+
+const CONFIG_DOC_ID = "main_config";
+const COLLECTION_NAME = "cms_config";
 
 export const getCMSData = async () => {
-  console.log("CMS: Iniciando obtención de datos...");
+  console.log("CMS: Iniciando obtención de datos (Estrategia Cache-First)...");
+
+  const docRef = doc(db, COLLECTION_NAME, CONFIG_DOC_ID);
 
   try {
-    // Timeout de 5 segundos para la petición
-    const timeout = new Promise((_, reject) => 
-      setTimeout(() => reject(new Error("Timeout")), 5000)
+    // 1. Intentar desde Cache (Rápido, Offline)
+    try {
+      const cacheSnap = await getDocFromCache(docRef);
+      if (cacheSnap.exists()) {
+        console.log("CMS: Datos recuperados desde CACHÉ local.");
+        // Opcional: Revalidar en segundo plano si es necesario
+        return cacheSnap.data().data || siteData;
+      }
+    } catch (cacheError) {
+      console.log("CMS: Cache no disponible, consultando servidor...");
+    }
+
+    // 2. Fallback al Servidor con Timeout
+    const timeoutPromise = new Promise((_, reject) => 
+      setTimeout(() => reject(new Error("Timeout de conexión a Firestore (10s)")), 10000)
     );
 
-    const fetchTask = supabase
-      .from("cms_config")
-      .select("data")
-      .maybeSingle();
+    const docSnap: any = await Promise.race([
+      getDocFromServer(docRef),
+      timeoutPromise
+    ]);
 
-    const result = await Promise.race([fetchTask, timeout]) as any;
-    
-    if (result.error) {
-      console.warn("CMS: Error al obtener datos de Supabase:", result.error.message);
+    if (docSnap.exists()) {
+      console.log("CMS: Datos cargados desde SERVIDOR.");
+      const content = docSnap.data();
+      return content.data || siteData;
+    } else {
+      console.log("CMS: No se encontraron datos en servidor, inicializando...");
+      await setDoc(docRef, { 
+        data: siteData, 
+        updated_at: new Date().toISOString() 
+      });
       return siteData;
     }
-
-    if (!result.data) {
-      console.log("CMS: No se encontraron datos, inicializando...");
-      const { data: newData, error: insertError } = await supabase
-         .from("cms_config")
-         .insert([{ data: siteData }])
-         .select("data")
-         .maybeSingle();
-      
-      if (insertError) {
-        console.error("CMS: Error al inicializar:", insertError.message);
-        return siteData;
-      }
-      return newData?.data || siteData;
-    }
-
-    console.log("CMS: Datos cargados correctamente.");
-    return result.data.data;
   } catch (error) {
-    console.error("CMS: Fallo en carga, usando fallback local:", error);
+    console.error("CMS: Error crítico en carga de datos, usando fallback local:", error);
     return siteData;
   }
 };
 
 export const saveCMSData = async (newData: any) => {
   try {
-    // First, check if row exists
-    const { data: existing } = await supabase
-      .from("cms_config")
-      .select("id")
-      .single();
-
-    if (existing) {
-      const { error } = await supabase
-        .from("cms_config")
-        .update({ data: newData, updated_at: new Date().toISOString() })
-        .eq("id", existing.id);
-      if (error) throw error;
-    } else {
-      const { error } = await supabase
-        .from("cms_config")
-        .insert([{ data: newData }]);
-      if (error) throw error;
-    }
+    console.log("CMS: Guardando datos en Firestore...");
+    const docRef = doc(db, COLLECTION_NAME, CONFIG_DOC_ID);
+    await setDoc(docRef, { 
+      data: newData, 
+      updated_at: new Date().toISOString() 
+    }, { merge: true });
     return true;
   } catch (error) {
-    console.error("Error saving CMS data:", error);
+    console.error("Error saving CMS data to Firestore:", error);
     throw error;
   }
 };
 
+/**
+ * Elimina un archivo de Firebase Storage dada su URL.
+ */
 export const deleteFileFromStorage = async (url: string) => {
-  if (!url || typeof url !== 'string' || url.includes('/video/frames/')) return;
-  
-  if (!url.includes('ignkkavplpqoyxxflbzh.supabase.co/storage/v1/object/public/')) return;
+  if (!url || !url.includes("firebasestorage.googleapis.com")) {
+    console.log("CMS: URL no válida o no es de Firebase Storage, omitiendo eliminación:", url);
+    return;
+  }
   
   try {
-    const urlParts = url.split('/storage/v1/object/public/');
-    const rest = urlParts[1];
-    const bucket = rest.split('/')[0];
-    const path = rest.substring(bucket.length + 1);
-
-    const { error } = await supabase.storage.from(bucket).remove([path]);
-    if (error) console.error("Error deleting from storage:", error);
-    else console.log(`Deleted file: ${bucket}/${path}`);
-  } catch (err) {
-    console.error("Error parsing storage URL:", err);
+    // Extraer el path del archivo desde la URL de Firebase Storage
+    // Las URLs tienen el formato: /v0/b/{bucket}/o/{path}?alt=media...
+    const decodedUrl = decodeURIComponent(url);
+    const pathStart = decodedUrl.indexOf("/o/") + 3;
+    const pathEnd = decodedUrl.indexOf("?");
+    const filePath = decodedUrl.substring(pathStart, pathEnd);
+    
+    console.log("CMS: Intentando eliminar archivo de Storage:", filePath);
+    const fileRef = ref(storage, filePath);
+    await deleteObject(fileRef);
+    console.log("CMS: Archivo eliminado con éxito de Storage.");
+  } catch (error) {
+    console.error("CMS: Error al eliminar archivo de Storage:", error);
   }
 };
-

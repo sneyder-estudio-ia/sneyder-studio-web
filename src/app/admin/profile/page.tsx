@@ -4,7 +4,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { auth } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
@@ -20,15 +21,14 @@ export default function ProfilePage() {
   const router = useRouter();
 
   useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session?.user || session.user.email !== ADMIN_EMAIL) {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         router.replace('/');
         return;
       }
       setIsChecking(false);
-    };
-    checkAdmin();
+    });
+    return () => unsubscribe();
   }, [router]);
 
   useEffect(() => {
@@ -147,10 +147,10 @@ export default function ProfilePage() {
               <span className="text-sm">Perfil</span>
             </div>
           </Link>
-          <Link href="/admin/products" onClick={() => setIsMenuOpen(false)}>
+          <Link href="/admin/settings" onClick={() => setIsMenuOpen(false)}>
             <div className="flex items-center gap-3 px-4 py-3 text-[#89ceff]/70 hover:text-[#2fd9f4] hover:bg-[#2fd9f4]/5 transition-all duration-200 cursor-pointer">
-              <span className="material-symbols-outlined">shopping_bag</span>
-              <span className="text-sm font-body">Productos CMS</span>
+              <span className="material-symbols-outlined">settings_suggest</span>
+              <span className="text-sm font-body">Ajuste Admin</span>
             </div>
           </Link>
           <Link href="/admin" onClick={() => setIsMenuOpen(false)}>
@@ -337,10 +337,10 @@ export default function ProfilePage() {
             <span className="font-body text-[10px] uppercase tracking-widest mt-1">Panel</span>
           </div>
         </Link>
-        <Link href="/admin/products">
+        <Link href="/admin/settings">
           <div className="flex flex-col items-center text-[#89ceff]/50 pt-2 transition-transform scale-95 active:scale-90">
-            <span className="material-symbols-outlined">insights</span>
-            <span className="font-body text-[10px] uppercase tracking-widest mt-1">Insights</span>
+            <span className="material-symbols-outlined">settings_suggest</span>
+            <span className="font-body text-[10px] uppercase tracking-widest mt-1">Ajuste Admin</span>
           </div>
         </Link>
         <Link href="/admin/profile">

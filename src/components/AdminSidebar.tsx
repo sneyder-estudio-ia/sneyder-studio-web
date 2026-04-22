@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import Image from "next/image";
 
 export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen: boolean; setIsMenuOpen: (val: boolean) => void }) {
@@ -13,26 +15,23 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
   const [userProfile, setUserProfile] = useState<any>(null);
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user || null;
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single();
-        setUserProfile(profile);
+        try {
+          const profileDoc = await getDoc(doc(db, 'profiles', currentUser.uid));
+          if (profileDoc.exists()) {
+            setUserProfile(profileDoc.data());
+          }
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+        }
+      } else {
+        setUserProfile(null);
       }
-    };
-    checkUser();
-    
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
     });
     
-    return () => subscription.unsubscribe();
+    return () => unsubscribe();
   }, []);
 
   return (
@@ -44,7 +43,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
               {user ? (
                 <Image 
                   alt="Admin Avatar" 
-                  src={user.user_metadata?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"}
+                  src={userProfile?.avatar_url || user?.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"}
                   width={40}
                   height={40}
                 />
@@ -54,15 +53,24 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
             </div>
             <div className="min-w-0">
               <p className="font-bold text-white text-sm truncate">
-                {userProfile?.manager_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0] || "Visitante"}
+                {userProfile?.manager_name?.split(' ')[0] || user?.displayName?.split(' ')[0] || user?.email?.split('@')[0] || "Visitante"}
               </p>
               <p className="text-[10px] text-cyan-400 uppercase tracking-widest truncate">Administrador</p>
             </div>
           </div>
           <div className="flex justify-between items-center mb-10">
 
-            <Link href="/">
-              <h2 className="text-xl lg:text-2xl font-black text-[#2fd9f4] font-headline cursor-pointer uppercase tracking-tighter">SNEYDER STUDIO</h2>
+            <Link 
+              href="/" 
+              className="h-10 w-auto relative mr-4 bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg hover:scale-105 transition-all group"
+            >
+              <Image 
+                src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+                alt="Sneyder Studio"
+                width={150}
+                height={32}
+                className="h-full w-auto object-contain group-hover:brightness-110"
+              />
             </Link>
             <button onClick={() => setIsMenuOpen(false)} className="md:hidden text-slate-500">
               <span className="material-symbols-outlined">close</span>
@@ -72,13 +80,18 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
             <SidebarItem icon="home" label="Inicio" href="/" />
             <SidebarItem icon="person" label="Perfil de usuario" href="/admin/profile" active={pathname === "/admin/profile"} />
             <SidebarItem icon="admin_panel_settings" label="Administración" href="/admin" active={pathname === "/admin"} />
-            <SidebarItem icon="inventory_2" label="Productos Activos" href="/admin/products" active={pathname === "/admin/products"} />
-            <SidebarItem icon="shopping_cart" label="Mis pedidos" href="/" />
-            <SidebarItem icon="build" label="Servicios" href="/" />
-            <SidebarItem icon="psychology" label="Modelo de IA" href="/" />
-            <SidebarItem icon="mail" label="Contacto" href="/" />
+            <SidebarItem icon="visibility" label="Visitas" href="/admin/visitas" active={pathname === "/admin/visitas"} />
+            <SidebarItem icon="group" label="Usuarios" href="/admin/users" active={pathname === "/admin/users"} />
+            <SidebarItem icon="settings_suggest" label="Ajuste Admin" href="/admin/settings" active={pathname === "/admin/settings"} />
+            <SidebarItem icon="shopping_cart" label="Mis pedidos" href="/mis-pedidos" active={pathname === "/mis-pedidos"} />
+            <SidebarItem icon="build" label="Servicios" href="/servicios" active={pathname === "/servicios"} />
+            <SidebarItem icon="psychology" label="Modelo de IA" href="/ia-models" active={pathname === "/ia-models"} />
+            <SidebarItem icon="mail" label="Contacto" href="/contacto" active={pathname === "/contacto"} />
             <div className="pt-2 text-slate-500 font-headline text-[10px] uppercase tracking-widest">Legal</div>
-            <SidebarItem icon="policy" label="Legal" href="/" />
+            <SidebarItem icon="policy" label="Políticas" href="/politicas" />
+            <SidebarItem icon="gavel" label="Términos" href="/terminos" />
+            <SidebarItem icon="description" label="Contrato" href="/contrato" />
+            <SidebarItem icon="info" label="Nosotros" href="/nosotros" />
           </nav>
         </div>
       </aside>
@@ -109,3 +122,4 @@ function SidebarItem({ icon, label, href, active = false }: { icon: string; labe
     </Link>
   );
 }
+

@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { auth, db } from "@/lib/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, collection, getCountFromServer, query, orderBy, limit, getDocs } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
@@ -14,29 +16,55 @@ export default function AdminPage() {
   const [user, setUser] = useState<any>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isChecking, setIsChecking] = useState(true);
+  const [userCount, setUserCount] = useState<number | string>("...");
+  const [weeklyVisits, setWeeklyVisits] = useState<number | string>("...");
   const router = useRouter();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user || null;
-      
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
         router.replace('/');
         return;
       }
       
       setUser(currentUser);
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', currentUser.id)
-        .single();
-      setUserProfile(profile);
+      try {
+        const profileDoc = await getDoc(doc(db, 'profiles', currentUser.uid));
+        if (profileDoc.exists()) {
+          setUserProfile(profileDoc.data());
+        }
+      } catch (err) {
+        console.error("Error fetching admin profile:", err);
+      }
       setIsChecking(false);
-    };
-    checkUser();
+    });
+    
+    return () => unsubscribe();
   }, [router]);
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        // Fetch users count
+        const coll = collection(db, "profiles");
+        const snapshot = await getCountFromServer(coll);
+        setUserCount(snapshot.data().count.toLocaleString());
+
+        // Fetch weekly visits
+        const qVisits = query(
+          collection(db, "stats", "visits", "daily"),
+          orderBy("date", "desc"),
+          limit(7)
+        );
+        const snapVisits = await getDocs(qVisits);
+        const total = snapVisits.docs.reduce((acc: number, doc: any) => acc + (doc.data().count || 0), 0);
+        setWeeklyVisits(total.toLocaleString());
+      } catch (err) {
+        console.error("Error fetching counts:", err);
+      }
+    };
+    if (user) fetchCounts();
+  }, [user]);
 
   if (isChecking) {
     return (
@@ -60,9 +88,21 @@ export default function AdminPage() {
           >
             <span className="material-symbols-outlined">menu</span>
           </button>
-          <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] truncate">
-            Administración - Sneyder Studio
-          </h1>
+          <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap">
+              Administración
+            </h1>
+            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
+            <div className="h-6 w-auto relative">
+              <Image 
+                src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+                alt="Sneyder Studio"
+                width={120}
+                height={24}
+                className="h-full w-auto object-contain"
+              />
+            </div>
+          </div>
         </div>
         <div className="flex items-center shrink-0">
           <Link href="/admin/profile" className="w-9 h-9 md:w-10 md:h-10 rounded-full border border-outline-variant/30 overflow-hidden relative block hover:scale-110 transition-transform active:scale-95 shadow-lg shadow-tertiary/10 bg-slate-800">
@@ -87,11 +127,15 @@ export default function AdminPage() {
       <main className={`pt-20 pb-28 px-4 md:px-6 max-w-7xl mx-auto space-y-6 md:space-y-8 w-full flex-grow transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
         {/* KPI Grid */}
         <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard icon="group" label="Usuarios Totales" value="12,842" trend="+12%" />
-          <Link href="/admin/products" className="block h-32">
-            <StatCard icon="inventory_2" label="Productos Activos" value="156" trend="Stable" isStable />
+          <Link href="/admin/users" className="block h-32">
+            <StatCard icon="group" label="Usuarios Totales" value={userCount.toString()} trend="+12%" />
           </Link>
-          <StatCard icon="visibility" label="Visitas Semanales" value="45.2K" trend="+24%" />
+          <Link href="/admin/settings" className="block h-32">
+            <StatCard icon="settings_suggest" label="Ajuste Admin" value="General" trend="Config" isStable />
+          </Link>
+          <Link href="/admin/visitas" className="block h-32">
+            <StatCard icon="visibility" label="Visitas Semanales" value={weeklyVisits.toLocaleString() || "..."} trend="+24%" />
+          </Link>
           <StatCard icon="shopping_bag" label="Pedidos" value="892" trend="+8%" />
         </section>
 
@@ -123,9 +167,33 @@ export default function AdminPage() {
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               <QuickActionButton icon="person_add" label="Crear Usuario" />
               <QuickActionButton icon="add_shopping_cart" label="Nuevo Pedido" />
-              <Link href="/admin/products" className="contents">
-                <QuickActionButton icon="smart_toy" label="Gestionar Modelos" />
+              <Link href="/admin/settings" className="contents">
+                <QuickActionButton icon="settings" label="Ajustes Admin" />
               </Link>
+              <QuickActionButton 
+                icon="mop" 
+                label="Mantenimiento" 
+                onClick={async () => {
+                  if (confirm("¿Ejecutar mantenimiento? Se limpiará el caché local y se optimizará el espacio.")) {
+                    try {
+                      // Limpiar caché de Firestore si es posible
+                      const { terminate, clearIndexedDbPersistence } = await import("firebase/firestore");
+                      await terminate(db).catch(() => {});
+                      await clearIndexedDbPersistence(db).catch(() => {});
+                      
+                      // Limpiar localStorage y sessionStorage
+                      localStorage.clear();
+                      sessionStorage.clear();
+                      
+                      alert("Mantenimiento completado: Caché limpiado y archivos temporales optimizados.");
+                      window.location.reload();
+                    } catch (err) {
+                      console.error("Error en mantenimiento:", err);
+                      alert("Error al ejecutar mantenimiento.");
+                    }
+                  }
+                }}
+              />
               <QuickActionButton icon="support_agent" label="Soporte Técnico" />
             </div>
             <div className="mt-8 md:mt-10 p-4 bg-surface-container-lowest rounded border border-outline-variant/10">
@@ -187,9 +255,12 @@ function ActivityItem({ icon, color, text, highlight, time }: { icon: string; co
   );
 }
 
-function QuickActionButton({ icon, label }: { icon: string; label: string }) {
+function QuickActionButton({ icon, label, onClick }: { icon: string; label: string; onClick?: () => void }) {
   return (
-    <button className="flex flex-col items-center justify-center p-3 md:p-4 bg-surface-container rounded gap-2 md:gap-3 hover:bg-tertiary group transition-all duration-300">
+    <button 
+      onClick={onClick}
+      className="flex flex-col items-center justify-center p-3 md:p-4 bg-surface-container rounded gap-2 md:gap-3 hover:bg-tertiary group transition-all duration-300 w-full"
+    >
       <span className="material-symbols-outlined text-tertiary group-hover:text-on-tertiary">{icon}</span>
       <span className="text-[9px] md:text-[10px] uppercase tracking-widest font-bold group-hover:text-on-tertiary text-center">{label}</span>
     </button>

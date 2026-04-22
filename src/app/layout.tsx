@@ -16,6 +16,11 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Sneyder Studio",
   description: "Innovative Digital Studio - Creating premium experiences.",
+  icons: {
+    icon: "https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png",
+    shortcut: "https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png",
+    apple: "https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png",
+  },
 };
 
 export const viewport: Viewport = {
@@ -24,6 +29,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
 };
+
+import VisitTracker from "@/components/VisitTracker";
 
 export default function RootLayout({
   children,
@@ -38,7 +45,10 @@ export default function RootLayout({
       <head>
         <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <VisitTracker />
+        {children}
+      </body>
     </html>
 
   );
