@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, deleteDoc } from "firebase/firestore";
+import { doc, getDoc, deleteDoc, updateDoc } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
 import { deleteFileFromStorage } from "@/lib/cms";
 
@@ -189,33 +189,105 @@ export default function UserDetailsPage({ params }: PageProps) {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style={{ animationDelay: '200ms' }}>
               
               {/* Profile Details */}
-              <section className="lg:col-span-2 bg-surface-container-low rounded-2xl border border-white/5 p-8 space-y-8">
-                <div>
-                  <h3 className="text-lg font-bold text-white font-headline mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-6 bg-tertiary rounded-full"></span>
-                    Información Detallada
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
-                    <DetailItem label="Nombre Completo" value={userProfile.manager_name || "—"} />
-                    <DetailItem label="Correo Electrónico" value={userProfile.email || "—"} />
-                    <DetailItem label="Nombre de Empresa" value={userProfile.company_name || "—"} />
-                    <DetailItem label="Teléfono / WhatsApp" value={userProfile.whatsapp || "—"} />
-                    <DetailItem label="ID de Usuario" value={userProfile.id || "—"} isCode />
-                    <DetailItem label="Rol del Sistema" value="Usuario del Cliente" />
+              <section className="lg:col-span-2 space-y-6">
+                <div className="bg-surface-container-low rounded-2xl border border-white/5 p-8 space-y-8">
+                  <div>
+                    <h3 className="text-lg font-bold text-white font-headline mb-6 flex items-center gap-3">
+                      <span className="w-1.5 h-6 bg-tertiary rounded-full"></span>
+                      Información Detallada
+                    </h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-6 gap-x-8">
+                      <DetailItem label="Nombre Completo" value={userProfile.manager_name || "—"} />
+                      <DetailItem label="Correo Electrónico" value={userProfile.email || "—"} />
+                      <DetailItem label="Nombre de Empresa" value={userProfile.company_name || "—"} />
+                      <DetailItem label="Teléfono / WhatsApp" value={userProfile.whatsapp || "—"} />
+                      <DetailItem label="ID de Usuario" value={userProfile.id || "—"} isCode />
+                      <DetailItem label="Rol del Sistema" value="Usuario del Cliente" />
+                    </div>
+                  </div>
+
+                  <div className="pt-8 border-t border-white/5">
+                    <h3 className="text-lg font-bold text-white font-headline mb-6 flex items-center gap-3">
+                      <span className="w-1.5 h-6 bg-primary rounded-full"></span>
+                      Configuración de Cuenta
+                    </h3>
+                    <div className="space-y-4">
+                      <ToggleItem label="Notificaciones por Email" checked={true} />
+                      <ToggleItem label="Acceso Programador" checked={false} />
+                      <ToggleItem label="Recibir Actualizaciones de IA" checked={true} />
+                    </div>
                   </div>
                 </div>
 
-                <div className="pt-8 border-t border-white/5">
-                   <h3 className="text-lg font-bold text-white font-headline mb-6 flex items-center gap-3">
-                    <span className="w-1.5 h-6 bg-primary rounded-full"></span>
-                    Configuración de Cuenta
-                  </h3>
-                  <div className="space-y-4">
-                    <ToggleItem label="Notificaciones por Email" checked={true} />
-                    <ToggleItem label="Acceso Programador" checked={false} />
-                    <ToggleItem label="Recibir Actualizaciones de IA" checked={true} />
+                {/* PRUEBA DE PAGO SECTION (Only for specific user) */}
+                {userProfile.email === "meneses23081994@gmail.com" && (
+                  <div className="bg-gradient-to-br from-[#0c1324] to-[#151b2d] rounded-2xl border border-tertiary/30 p-8 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity">
+                      <span className="material-symbols-outlined text-8xl">payments</span>
+                    </div>
+                    
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-10 h-10 rounded-full bg-tertiary/10 flex items-center justify-center border border-tertiary/20">
+                          <span className="material-symbols-outlined text-tertiary">science</span>
+                        </div>
+                        <h3 className="text-xl font-bold text-white font-headline uppercase tracking-tight">Prueba de Pago</h3>
+                      </div>
+                      
+                      <p className="text-sm text-slate-400 mb-8 leading-relaxed max-w-lg">
+                        Activa una transacción de prueba de <span className="text-white font-bold">$1.00 USD</span> para este usuario. Esto permitirá verificar la integración real de PayPal en su cuenta.
+                      </p>
+                      
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const docRef = doc(db, "profiles", id);
+                              await updateDoc(docRef, {
+                                test_payment_active: true,
+                                test_payment_amount: "1.00"
+                              });
+                              alert("¡Prueba de pago enviada con éxito!");
+                              fetchUserProfile();
+                            } catch (error) {
+                              console.error("Error activating test payment:", error);
+                              alert("Error al activar la prueba de pago.");
+                            }
+                          }}
+                          className={`flex-1 w-full sm:w-auto py-4 rounded-xl font-bold uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 shadow-lg ${
+                            userProfile.test_payment_active 
+                            ? "bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 cursor-default" 
+                            : "bg-tertiary text-on-tertiary hover:scale-[1.02] active:scale-95 shadow-tertiary/20"
+                          }`}
+                        >
+                          <span className="material-symbols-outlined text-base">
+                            {userProfile.test_payment_active ? "check_circle" : "send"}
+                          </span>
+                          {userProfile.test_payment_active ? "Prueba Enviada" : "Enviar Prueba de Pago"}
+                        </button>
+                        
+                        {userProfile.test_payment_active && (
+                          <button 
+                            onClick={async () => {
+                              try {
+                                const docRef = doc(db, "profiles", id);
+                                await updateDoc(docRef, {
+                                  test_payment_active: false
+                                });
+                                fetchUserProfile();
+                              } catch (error) {
+                                console.error("Error cancelling test payment:", error);
+                              }
+                            }}
+                            className="w-full sm:w-auto px-6 py-4 bg-slate-800 text-slate-400 text-[10px] font-bold uppercase tracking-widest rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all border border-white/5"
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                </div>
+                )}
               </section>
 
               {/* Sidebar / Stats */}

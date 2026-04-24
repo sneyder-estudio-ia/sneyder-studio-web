@@ -20,6 +20,7 @@ export default function ClientProfilePage() {
     manager_name: "",
     company_name: "",
     whatsapp: "",
+    test_payment_active: false,
   });
 
   useEffect(() => {
@@ -38,12 +39,14 @@ export default function ClientProfilePage() {
             manager_name: profile.manager_name || currentUser.displayName || "",
             company_name: profile.company_name || "",
             whatsapp: profile.whatsapp || "",
+            test_payment_active: profile.test_payment_active || false,
           });
         } else {
           setFormData({
             manager_name: currentUser.displayName || "",
             company_name: "",
             whatsapp: "",
+            test_payment_active: false,
           });
         }
       } catch (err) {
@@ -163,6 +166,29 @@ export default function ClientProfilePage() {
       )}
 
       <main className="pt-24 pb-32 px-5 max-w-2xl mx-auto">
+        {/* Prueba de Pago Alert */}
+        {formData && (formData as any).test_payment_active && (
+          <div className="mb-8 bg-gradient-to-br from-tertiary/20 to-tertiary/5 border border-tertiary/30 rounded-2xl p-6 shadow-2xl animate-pulse-slow">
+            <div className="flex items-start gap-4">
+              <div className="w-12 h-12 rounded-full bg-tertiary/20 flex items-center justify-center border border-tertiary/30 shrink-0">
+                <span className="material-symbols-outlined text-tertiary text-2xl">priority_high</span>
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-bold text-white font-headline uppercase tracking-tight mb-1">Prueba de Pago Pendiente</h3>
+                <p className="text-xs text-slate-400 mb-6 leading-relaxed">
+                  Se ha habilitado una transacción de prueba de <span className="text-tertiary font-bold">$1.00 USD</span> para verificar tu cuenta. Por favor, finaliza el proceso para continuar.
+                </p>
+                <Link href="/admin/test-payment">
+                  <button className="w-full sm:w-auto px-8 py-3 bg-tertiary text-on-tertiary rounded-xl font-bold uppercase tracking-widest text-[10px] hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-tertiary/20 flex items-center justify-center gap-3">
+                    Realizar Pago de Prueba
+                    <span className="material-symbols-outlined text-sm">payments</span>
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Profile Card */}
         <div className="bg-[#111827]/80 border border-white/5 rounded-2xl p-6 mb-6 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"></div>

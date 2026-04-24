@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { auth } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 type PaymentView = 'selection' | 'processing' | 'success' | 'error';
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
+const TEST_USER_EMAIL = "meneses23081994@gmail.com";
 
 export default function TestPaymentPage() {
   const [user, setUser] = useState<any>(null);
@@ -21,13 +23,26 @@ export default function TestPaymentPage() {
   const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "";
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (!currentUser) {
         router.replace('/');
         return;
       }
-      setUser(currentUser);
-      setIsLoading(false);
+
+      if (currentUser.email === ADMIN_EMAIL || currentUser.email === TEST_USER_EMAIL) {
+        // Check if test is active for non-admin
+        if (currentUser.email === TEST_USER_EMAIL) {
+          const profileSnap = await getDoc(doc(db, "profiles", currentUser.uid));
+          if (!profileSnap.exists() || !profileSnap.data().test_payment_active) {
+            router.replace('/profile');
+            return;
+          }
+        }
+        setUser(currentUser);
+        setIsLoading(false);
+      } else {
+        router.replace('/');
+      }
     });
 
     return () => unsubscribe();
@@ -180,6 +195,19 @@ export default function TestPaymentPage() {
                           setView('processing');
                           const details = await actions.order.capture();
                           console.log("Test Payment Details:", details);
+                          
+                          // Clear the flag in the profile
+                          if (user) {
+                            try {
+                              const docRef = doc(db, "profiles", user.uid);
+                              await updateDoc(docRef, {
+                                test_payment_active: false
+                              });
+                            } catch (err) {
+                              console.error("Error clearing test payment flag:", err);
+                            }
+                          }
+                          
                           setView('success');
                         }
                       }}
