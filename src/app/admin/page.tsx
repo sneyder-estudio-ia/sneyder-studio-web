@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, collection, getCountFromServer, query, orderBy, limit, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, getCountFromServer, query, orderBy, limit, getDocs, addDoc } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
@@ -65,6 +65,25 @@ export default function AdminPage() {
     };
     if (user) fetchCounts();
   }, [user]);
+
+  const createSampleOrder = async () => {
+    if (!user) return;
+    try {
+      const order = {
+        user_id: user.uid,
+        status: "processing",
+        created_at: new Date().toISOString(),
+        total: 1250,
+        items: [{ name: "Desarrollo Web Pro", price: 1250 }],
+        current_step: 1
+      };
+      const docRef = await addDoc(collection(db, 'orders'), order);
+      alert(`Pedido de muestra creado con éxito.\nID: ${docRef.id}\nPodrás verlo en 'Mis Pedidos'.`);
+    } catch (err) {
+      console.error("Error creating sample order:", err);
+      alert("Error al crear el pedido de muestra.");
+    }
+  };
 
   if (isChecking) {
     return (
@@ -166,7 +185,11 @@ export default function AdminPage() {
             <h2 className="font-headline text-base md:text-lg font-bold tracking-tight mb-6 md:mb-8">Acciones Rápidas</h2>
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               <QuickActionButton icon="person_add" label="Crear Usuario" />
-              <QuickActionButton icon="add_shopping_cart" label="Nuevo Pedido" />
+              <QuickActionButton 
+                icon="add_shopping_cart" 
+                label="Nuevo Pedido" 
+                onClick={createSampleOrder}
+              />
               <Link href="/admin/settings" className="contents">
                 <QuickActionButton icon="settings" label="Ajustes Admin" />
               </Link>

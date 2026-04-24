@@ -142,10 +142,12 @@ export default function MyOrdersPage() {
                 </div>
                 
                 <div className="mt-6 pt-6 border-t border-white/5 flex justify-end">
-                  <button className="text-xs font-bold uppercase tracking-widest text-cyan-400 border border-cyan-400/30 px-5 py-2 rounded-lg hover:bg-cyan-400/10 transition-all flex items-center gap-2">
-                    Detalles del Proyecto
-                    <span className="material-symbols-outlined text-sm">open_in_new</span>
-                  </button>
+                  <Link href={`/mis-pedidos/${order.id}`}>
+                    <button className="text-xs font-bold uppercase tracking-widest text-cyan-400 border border-cyan-400/30 px-5 py-2 rounded-lg hover:bg-cyan-400/10 transition-all flex items-center gap-2">
+                      Detalles del Proyecto
+                      <span className="material-symbols-outlined text-sm">open_in_new</span>
+                    </button>
+                  </Link>
                 </div>
               </div>
             ))}
