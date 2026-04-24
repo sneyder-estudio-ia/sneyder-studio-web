@@ -335,13 +335,6 @@ export default function IAModelsPage() {
         </footer>
       </main>
 
-      {/* Mobile Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 bg-[#0c1324]/90 backdrop-blur-xl border-t border-slate-800">
-        <BottomNavItem icon="home" label="Inicio" href="/" />
-        <BottomNavItem icon="bolt" label="Servicios" href="/servicios" />
-        <BottomNavItem icon="psychology" label="Modelos" href="/ia-models" active />
-        <BottomNavItem icon="person" label="Perfil" href="/profile" />
-      </nav>
     </div>
   );
 }
@@ -362,13 +355,4 @@ function NavItem({ icon, label, href, active = false, small = false, className =
   );
 }
 
-function BottomNavItem({ icon, label, href, active = false }: { icon: string; label: string; href: string; active?: boolean }) {
-  return (
-    <Link 
-      href={href}
-      className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${active ? "text-cyan-400 scale-110" : "text-slate-500 hover:text-cyan-200"}`}>
-      <span className="material-symbols-outlined">{icon}</span>
-      <span className="text-[10px] font-medium mt-0.5">{label}</span>
-    </Link>
-  );
-}
+

@@ -212,17 +212,9 @@ export default function AdminPage() {
       {/* NavigationDrawer */}
       <AdminSidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
 
-      {/* BottomNavBar (Visible on Mobile) */}
-      <nav className="md:hidden fixed bottom-0 w-full z-50 bg-[#0c1324]/90 backdrop-blur-2xl border-t border-[#45464d]/15 flex justify-around items-center py-2 px-4 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-        <BottomNavItem icon="home" label="Home" href="/" />
-        <BottomNavItem icon="query_stats" label="Insights" href="/admin" active />
-        <BottomNavItem icon="account_circle" label="Profile" href="/admin/profile" />
-        <BottomNavItem icon="more_horiz" label="More" href="/" />
-      </nav>
     </div>
   );
 }
-
 function StatCard({ icon, label, value, trend, isStable = false }: { icon: string; label: string; value: string; trend: string; isStable?: boolean }) {
   return (
     <div className="bg-surface-container-low p-5 rounded-lg border-t border-primary/20 shadow-sm flex flex-col justify-between h-32 transition-transform hover:scale-[1.02]">
@@ -279,22 +271,6 @@ function SidebarItem({ icon, label, href, active = false }: { icon: string; labe
     >
       <span className="material-symbols-outlined">{icon}</span>
       <span>{label}</span>
-    </Link>
-  );
-}
-
-function BottomNavItem({ icon, label, href, active = false }: { icon: string; label: string; href: string; active?: boolean }) {
-  return (
-    <Link 
-      href={href}
-      className={`flex flex-col items-center p-2 transition-all duration-200 ${
-        active ? "text-[#2fd9f4]" : "text-slate-500 hover:text-[#89ceff]"
-      }`}
-    >
-      <span className={`material-symbols-outlined text-2xl ${active ? "drop-shadow-[0_0_8px_rgba(47,217,244,0.5)]" : ""}`}>
-        {icon}
-      </span>
-      <span className="font-['Inter'] text-[9px] uppercase tracking-wider mt-0.5">{label}</span>
     </Link>
   );
 }

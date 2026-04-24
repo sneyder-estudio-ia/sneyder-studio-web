@@ -416,3 +416,5 @@ function StatMiniCard({ icon, label, value, trend, color }: { icon: string; labe
     </div>
   );
 }
+
+

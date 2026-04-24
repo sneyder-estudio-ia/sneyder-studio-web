@@ -244,12 +244,12 @@ export default function ServicesPage() {
           {/* New Section: Why Choose Us */}
           <section className="mt-32">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-              <div className="relative aspect-square rounded-3xl overflow-hidden border border-white/5">
+              <div className="relative aspect-square rounded-3xl overflow-hidden border border-white/5 flex items-center justify-center bg-white/5">
                 <Image 
-                  src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8g8ZfR7uXXfys5NEokNbCaHjaLz0CADi1gowHp8gb-7noJlMRljr3-mVbZP_I-FVv3sRqDQK3aUa5Au4M0zWp8e2VanLwjjeZJ5m-UdWR6Y_vkXc6icAl_JAHpeRdfxzoFh_l7NLP2HPGWifyLXpyzvHNdvwNxzqrG0G-7sQ_nqTF04XpUr-WTtef4vCakefTuACtn0qQkrMKl1DppbSiA4lIgomSkxKkOJcfpwpwpLZwLxtvWyURUB43Z_sqTjS9i8T_6t3bll0"
-                  alt="Business Growth"
+                  src="https://i.postimg.cc/mDgqGyw3/Picsart-25-03-28-04-00-43-410.png"
+                  alt="Sneyder Studio Logo"
                   fill
-                  className="object-cover opacity-60 mix-blend-luminosity hover:mix-blend-normal transition-all duration-700 hover:scale-105"
+                  className="w-1/2 h-1/2 object-contain hover:scale-105 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-transparent"></div>
               </div>
@@ -304,13 +304,6 @@ export default function ServicesPage() {
           </div>
         </footer>
       </main>
-
-      {/* Mobile Nav */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 bg-[#0c1324]/90 backdrop-blur-xl border-t border-slate-800">
-        <BottomNavItem icon="home" label="Inicio" href="/" />
-        <BottomNavItem icon="bolt" label="Servicios" href="/servicios" active />
-        <BottomNavItem icon="person" label="Perfil" href="/profile" />
-      </nav>
     </div>
   );
 }
@@ -327,17 +320,6 @@ function NavItem({ icon, label, href, active = false, small = false, className =
     >
       <span className={`material-symbols-outlined ${small ? "text-base" : ""}`}>{icon}</span>
       <span>{label}</span>
-    </Link>
-  );
-}
-
-function BottomNavItem({ icon, label, href, active = false }: { icon: string; label: string; href: string; active?: boolean }) {
-  return (
-    <Link 
-      href={href}
-      className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${active ? "text-cyan-400 scale-110" : "text-slate-500 hover:text-cyan-200"}`}>
-      <span className="material-symbols-outlined">{icon}</span>
-      <span className="text-[10px] font-medium mt-0.5">{label}</span>
     </Link>
   );
 }

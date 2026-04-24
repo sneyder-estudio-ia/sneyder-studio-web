@@ -3,6 +3,7 @@
 import Image from "next/image";
 import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { auth, db } from '@/lib/firebase';
 import {
   signInWithEmailAndPassword,
@@ -25,6 +26,7 @@ export default function Home() {
   const [sectionsOrder, setSectionsOrder] = useState<string[]>([]);
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const router = useRouter();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showLogoViewer, setShowLogoViewer] = useState(false);
   const [viewerImage, setViewerImage] = useState("");
@@ -533,7 +535,13 @@ export default function Home() {
 
                                 <div className="flex items-center gap-3 mb-4 relative z-10">
                                   <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center border border-white/10 group-hover/platform:border-tertiary/30 transition-colors shadow-inner backdrop-blur-md">
-                                    <span className="material-symbols-outlined text-tertiary scale-90 group-hover/platform:scale-110 transition-transform shadow-tertiary/20 drop-shadow-sm">{platform.icon}</span>
+                                    {platform.icon === "apple" ? (
+                                      <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current text-tertiary scale-90 group-hover/platform:scale-110 transition-transform shadow-tertiary/20 drop-shadow-sm" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.039 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.844-1.026 1.404-2.455 1.248-3.883-1.234.052-2.73.818-3.61 1.844-.793.91-1.48 2.364-1.286 3.753 1.376.104 2.805-.69 3.648-1.714z" />
+                                      </svg>
+                                    ) : (
+                                      <span className="material-symbols-outlined text-tertiary scale-90 group-hover/platform:scale-110 transition-transform shadow-tertiary/20 drop-shadow-sm">{platform.icon}</span>
+                                    )}
                                   </div>
                                   <h4 className="font-headline text-xl font-bold text-white group-hover/platform:text-tertiary transition-colors">{platform.name}</h4>
                                 </div>
@@ -788,36 +796,58 @@ export default function Home() {
                           ))}
                         </div>
                       </div>
-                      <div className="relative aspect-video lg:aspect-square rounded-sm overflow-hidden border border-outline-variant/10">
+                      <div className="relative aspect-video lg:aspect-square rounded-sm overflow-hidden border border-white/10 flex items-center justify-center bg-white/5">
                         <Image
-                          alt="Business Growth Visual"
-                          className="w-full h-full object-cover opacity-40 mix-blend-screen"
-                          src="https://lh3.googleusercontent.com/aida-public/AB6AXuB8g8ZfR7uXXfys5NEokNbCaHjaLz0CADi1gowHp8gb-7noJlMRljr3-mVbZP_I-FVv3sRqDQK3aUa5Au4M0zWp8e2VanLwjjeZJ5m-UdWR6Y_vkXc6icAl_JAHpeRdfxzoFh_l7NLP2HPGWifyLXpyzvHNdvwNxzqrG0G-7sQ_nqTF04XpUr-WTtef4vCakefTuACtn0qQkrMKl1DppbSiA4lIgomSkxKkOJcfpwpwpLZwLxtvWyURUB43Z_sqTjS9i8T_6t3bll0"
+                          alt="Sneyder Studio Logo"
+                          className="w-1/2 h-1/2 object-contain"
+                          src="https://i.postimg.cc/mDgqGyw3/Picsart-25-03-28-04-00-43-410.png"
                           fill
                         />
-                        <div className="absolute inset-0 bg-gradient-to-br from-tertiary/10 to-transparent"></div>
+                        <div className="absolute inset-0 bg-gradient-to-br from-tertiary/5 to-transparent"></div>
                       </div>
                     </div>
                   </section>
                 )}
 
                 {sectionId === 'cta' && (
-                  /* Newsletter Section */
-                  <section className="bg-surface-container-low p-12 rounded-sm text-center border-t border-cyan-400/10 relative">
-                    <h2 className="font-headline text-4xl font-bold mb-6">{data.cta.title}</h2>
-                    <p className="text-on-surface-variant max-w-2xl mx-auto mb-10 text-lg">
-                      {data.cta.description}
-                    </p>
-                    <form className="max-w-md mx-auto flex flex-col sm:flex-row gap-4">
-                      <input
-                        className="flex-1 bg-surface-container-lowest border-b border-outline-variant/30 focus:border-tertiary outline-none text-white px-4 py-3 transition-all"
-                        placeholder="Su correo corporativo"
-                        type="email"
-                      />
-                      <button className="bg-tertiary text-on-tertiary px-6 py-3 font-bold uppercase tracking-widest text-xs rounded-sm whitespace-nowrap hover:brightness-110 active:scale-95 transition-all">
-                        {data.cta.buttonText}
-                      </button>
-                    </form>
+                  /* Elegant CTA Section */
+                  <section className="bg-surface-container-low p-12 md:p-24 rounded-3xl text-center border border-white/10 relative overflow-hidden group shadow-2xl mt-32 mb-20 mx-4 md:mx-0">
+                    {/* Decorative elements */}
+                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-tertiary/10 rounded-full blur-[100px] group-hover:bg-tertiary/20 transition-all duration-1000"></div>
+                    <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] group-hover:bg-purple-500/20 transition-all duration-1000"></div>
+
+                    <div className="relative z-10 max-w-3xl mx-auto">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-tertiary/10 border border-tertiary/30 rounded-full mb-8 backdrop-blur-md">
+                        <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse"></span>
+                        <span className="text-[10px] font-black text-tertiary uppercase tracking-[0.3em]">Transformación Digital</span>
+                      </div>
+
+                      <h2 className="font-headline text-4xl md:text-6xl font-black mb-8 text-white tracking-tight leading-tight">
+                        {data.cta.title}
+                      </h2>
+
+                      <p className="text-slate-300 max-w-2xl mx-auto mb-12 text-lg md:text-xl leading-relaxed font-medium opacity-90">
+                        {data.cta.description}
+                      </p>
+
+                      <div className="flex justify-center">
+                        <button
+                          onClick={() => {
+                            if (user) {
+                              router.push('/contacto');
+                            } else {
+                              setAuthView('login');
+                              setShowAuthModal(true);
+                            }
+                          }}
+                          className="group/btn relative overflow-hidden bg-tertiary text-on-tertiary px-10 py-5 font-black uppercase tracking-[0.2em] text-xs md:text-sm rounded-xl hover:brightness-110 active:scale-95 transition-all shadow-[0_20px_50px_rgba(47,217,244,0.3)] hover:shadow-[0_20px_70px_rgba(47,217,244,0.5)] flex items-center gap-4"
+                        >
+                          <span className="relative z-10">{data.cta.buttonText}</span>
+                          <span className="material-symbols-outlined relative z-10 group-hover/btn:translate-x-2 transition-transform">arrow_forward</span>
+                          <div className="absolute inset-0 w-1/2 h-full bg-white/20 -skew-x-12 -translate-x-[200%] group-hover/btn:animate-shine"></div>
+                        </button>
+                      </div>
+                    </div>
                   </section>
                 )}
               </div>
@@ -835,10 +865,10 @@ export default function Home() {
           <div className="py-6 px-8 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8 relative z-40 bg-surface-container-lowest">
             <div
               className="h-12 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-2 group shadow-lg"
-              onClick={() => { setViewerImage("https://i.postimg.cc/mDgqGyw3/Picsart-25-03-28-04-00-43-410.png"); setShowLogoViewer(true); }}
+              onClick={() => { setViewerImage("https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"); setShowLogoViewer(true); }}
             >
               <Image
-                src="https://i.postimg.cc/mDgqGyw3/Picsart-25-03-28-04-00-43-410.png"
+                src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio Secondary Logo"
                 width={120}
                 height={40}
@@ -857,13 +887,6 @@ export default function Home() {
         </footer>
       </main>
 
-      {/* BottomNavBar (Hidden on desktop, shown on mobile) */}
-      <nav className="lg:hidden fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-16 bg-[#0c1324]/90 backdrop-blur-xl border-t border-slate-800">
-        <BottomNavItem icon="home" label="Inicio" href="/" active />
-        <BottomNavItem icon="explore" label="Explorar" href="/" />
-        <BottomNavItem icon="insights" label="Insights" href="/admin" />
-        <BottomNavItem icon="person" label="Perfil" href="/" />
-      </nav>
       {/* Image Viewer Modal */}
       {showLogoViewer && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10 animate-fade-in">
@@ -1322,16 +1345,6 @@ function NavItem({ icon, label, href, active = false, small = false, className =
   );
 }
 
-function BottomNavItem({ icon, label, href, active = false }: { icon: string; label: string; href: string; active?: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={`flex flex-col items-center justify-center cursor-pointer transition-colors ${active ? "text-cyan-400 scale-110" : "text-slate-500 hover:text-cyan-200"}`}>
-      <span className="material-symbols-outlined">{icon}</span>
-      <span className="text-[10px] font-medium mt-0.5">{label}</span>
-    </Link>
-  );
-}
 
 
 
@@ -1447,3 +1460,5 @@ function TechMarquee({ transparent = false }: { transparent?: boolean }) {
     </>
   );
 }
+
+

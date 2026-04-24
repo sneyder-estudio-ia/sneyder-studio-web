@@ -55,10 +55,16 @@
   --radius-full: 0.75rem;
 
   --animate-fade-in: fade-in 1s ease-out;
+  --animate-shine: shine 2s infinite;
 
   @keyframes fade-in {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes shine {
+    from { transform: translateX(-200%) skewX(-12deg); }
+    to { transform: translateX(200%) skewX(-12deg); }
   }
 }
 
