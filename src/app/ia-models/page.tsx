@@ -23,7 +23,7 @@ export default function IAModelsPage() {
     const loadContent = async () => {
       const dbData = await getCMSData();
       setData(dbData);
-      
+
       const settings = await getAdminSettings();
       setAdminSettings(settings);
     };
@@ -55,20 +55,20 @@ export default function IAModelsPage() {
 
   if (!data) return (
     <div className="bg-background min-h-screen flex items-center justify-center text-center px-6">
-       <div className="flex flex-col items-center gap-6">
-          <div className="relative w-32 h-32 mb-4">
-             <Image 
-               src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
-               alt="Sneyder Studio Logo"
-               fill
-               className="object-contain animate-pulse"
-             />
-          </div>
-          <div className="w-16 h-1 bg-tertiary/20 rounded-full overflow-hidden relative">
-             <div className="absolute inset-0 bg-tertiary animate-loading-bar"></div>
-          </div>
-          <span className="text-tertiary font-bold tracking-[0.5em] uppercase text-[10px]">Iniciando Motores de IA...</span>
-       </div>
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative w-32 h-32 mb-4">
+          <Image
+            src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+            alt="Sneyder Studio Logo"
+            fill
+            className="object-contain animate-pulse"
+          />
+        </div>
+        <div className="w-16 h-1 bg-tertiary/20 rounded-full overflow-hidden relative">
+          <div className="absolute inset-0 bg-tertiary animate-loading-bar"></div>
+        </div>
+        <span className="text-tertiary font-bold tracking-[0.5em] uppercase text-[10px]">Iniciando Motores de IA...</span>
+      </div>
     </div>
   );
 
@@ -120,14 +120,14 @@ export default function IAModelsPage() {
       {/* Header */}
       <header className={`fixed top-0 w-full z-60 bg-[#0c1324] border-b border-slate-800 flex justify-between items-center px-6 h-16 shadow-[0px_2px_10px_rgba(0,0,0,0.5)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-80" : "pl-0"}`}>
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-cyan-400 hover:bg-slate-800 p-1 rounded-full transition-colors"
           >
             <span className="material-symbols-outlined">menu</span>
           </button>
           <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-            <Image 
+            <Image
               src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
               alt="Sneyder Studio"
               width={140}
@@ -136,18 +136,18 @@ export default function IAModelsPage() {
             />
           </Link>
         </div>
-        
+
         {user ? (
           <div className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-cyan-400/30">
-            <Image 
-              alt="User Avatar" 
+            <Image
+              alt="User Avatar"
               src={user.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuCO8RUk1wD7WV7O7IKZ_NBnLhlsnuVdHeC9x_CyLRsEpavDT9Qu9rC4-F4JAFIMwExYTNXtPsW04RAgXxe2vZ_1xgd0Wpqlz62JTPKFItouFbiVzuuvaA3Jr4zodwxrF3k5SScHvPKbmmQvNvCnMsjMY1m7yzSHBq-NVdD2N3qaTUfNHCwYii6gD_VVnTZrwbjzB-EmuUn_Y4QYasiBWkPdcLN2PPRgr4tyrGNvjDYnaz1WSLw73itY4B6zTZAWRKzhDVirP2Wyrcw"}
               width={32}
               height={32}
             />
           </div>
         ) : (
-          <Link 
+          <Link
             href="/"
             className="bg-tertiary/10 border border-tertiary/50 text-tertiary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-tertiary hover:text-on-tertiary transition-all"
           >
@@ -157,17 +157,16 @@ export default function IAModelsPage() {
       </header>
 
       {/* Sidebar */}
-      <aside 
-        className={`fixed left-0 top-0 z-[70] h-[100dvh] w-80 bg-[#0c1324] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out font-headline text-slate-200 overflow-hidden ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+      <aside
+        className={`fixed left-0 top-0 z-[70] h-[100dvh] w-80 bg-[#0c1324] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out font-headline text-slate-200 overflow-hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="p-8 flex flex-col gap-2">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-slate-800">
               {user ? (
-                <Image 
-                  alt="User Profile Avatar" 
+                <Image
+                  alt="User Profile Avatar"
                   src={user.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"}
                   width={48}
                   height={48}
@@ -185,11 +184,11 @@ export default function IAModelsPage() {
               </p>
             </div>
           </div>
-          <Link 
+          <Link
             href="/"
             className="relative w-full h-16 mb-8 cursor-pointer hover:scale-[1.02] transition-all bg-white/5 rounded-2xl border border-white/10 overflow-hidden p-3 shadow-xl group"
           >
-            <Image 
+            <Image
               src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
               alt="Sneyder Studio"
               fill
@@ -206,14 +205,14 @@ export default function IAModelsPage() {
           <NavItem icon="bolt" label="Servicios" href="/servicios" />
           <NavItem icon="psychology" label="Modelo de IA" href="/ia-models" active />
           <NavItem icon="mail" label="Contacto" href="/contacto" />
-          
+
           <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Legal</div>
           <NavItem icon="policy" label="Política y condiciones" href="/contrato" small />
           <NavItem icon="gavel" label="Términos de servicio" href="/contrato" small />
           <NavItem icon="description" label="Contrato de servicios" href="/contrato" small />
-          
+
           {user && (
-            <button 
+            <button
               onClick={handleSignOut}
               className="flex items-center gap-4 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors w-full text-left"
             >
@@ -226,7 +225,7 @@ export default function IAModelsPage() {
 
       {/* Overlay */}
       {isMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/40 z-[65] backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setIsMenuOpen(false)}
         />
@@ -259,10 +258,10 @@ export default function IAModelsPage() {
                   <p className="text-slate-300 text-lg leading-relaxed mb-8">
                     {model.description}
                   </p>
-                  
+
                   <div className="bg-white/5 border border-white/10 rounded-2xl p-8 mb-8 backdrop-blur-md">
                     <h4 className="text-cyan-400 font-bold uppercase tracking-widest text-xs mb-4 flex items-center gap-2">
-                       <span className="material-symbols-outlined text-sm">rocket_launch</span> Aplicación en su Negocio
+                      <span className="material-symbols-outlined text-sm">rocket_launch</span> Aplicación en su Negocio
                     </h4>
                     <p className="text-slate-400 leading-relaxed italic">
                       "{model.useCase}"
@@ -282,15 +281,15 @@ export default function IAModelsPage() {
                 <div className={`relative aspect-square md:aspect-video lg:aspect-square flex items-center justify-center ${index % 2 !== 0 ? 'lg:order-1' : ''}`}>
                   {/* Decorative Background Glow */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${model.color} opacity-10 blur-[100px] rounded-full`}></div>
-                  
+
                   {/* Floating Logo Container */}
                   <div className="relative w-full h-full max-w-md max-h-md flex items-center justify-center group">
                     <div className="absolute inset-0 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm -rotate-3 group-hover:rotate-0 transition-transform duration-700"></div>
                     <div className="absolute inset-0 bg-white/5 rounded-3xl border border-white/10 backdrop-blur-sm rotate-3 group-hover:rotate-0 transition-transform duration-700"></div>
-                    
+
                     <div className="relative w-4/5 h-4/5 flex items-center justify-center p-12 bg-surface-container-lowest rounded-3xl shadow-2xl border border-white/10 z-10 transition-transform duration-700 group-hover:scale-105">
                       <div className="relative w-full h-full">
-                        <Image 
+                        <Image
                           src={model.logo}
                           alt={`${model.name} Logo`}
                           fill
@@ -306,20 +305,29 @@ export default function IAModelsPage() {
 
           {/* CTA Section */}
           <section className="mt-48 bg-gradient-to-br from-surface-container-low to-background p-12 md:p-20 rounded-[3rem] border border-white/5 text-center relative overflow-hidden">
-             <div className="absolute -top-24 -left-24 w-64 h-64 bg-tertiary/10 rounded-full blur-[100px]"></div>
-             <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px]"></div>
-             
-             <h2 className="font-headline text-4xl md:text-6xl font-bold text-white mb-8 tracking-tight">¿No sabe cuál elegir?</h2>
-             <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-12">
-               Nuestros expertos analizan su modelo de negocio y flujo de trabajo para recomendarle la combinación perfecta de modelos que maximice su ROI.
-             </p>
-             
-             <Link 
-               href="/"
-               className="inline-flex items-center gap-3 bg-tertiary text-on-tertiary px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-[0_15px_40px_rgba(47,217,244,0.3)]"
-             >
-               Solicitar Auditoría de IA <span className="material-symbols-outlined">psychology</span>
-             </Link>
+            <div className="absolute -top-24 -left-24 w-64 h-64 bg-tertiary/10 rounded-full blur-[100px]"></div>
+            <div className="absolute -bottom-24 -right-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px]"></div>
+
+            <h2 className="font-headline text-4xl md:text-6xl font-bold text-white mb-8 tracking-tight">¿No sabe cuál elegir?</h2>
+            <p className="text-slate-400 text-lg md:text-xl max-w-2xl mx-auto mb-12">
+              Nuestros expertos analizan su modelo de negocio y flujo de trabajo para recomendarle la combinación perfecta de modelos que maximice su ROI.
+            </p>
+
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-3 bg-tertiary text-on-tertiary px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm hover:scale-105 active:scale-95 transition-all shadow-[0_15px_40px_rgba(47,217,244,0.3)]"
+              >
+                Solicitar Auditoría de IA <span className="material-symbols-outlined">psychology</span>
+              </Link>
+
+              <Link
+                href="/recurso-adquirido"
+                className="inline-flex items-center gap-3 bg-white/5 border border-white/10 text-white px-10 py-5 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-white/10 active:scale-95 transition-all shadow-xl"
+              >
+                Recurso Adquirido <span className="material-symbols-outlined text-tertiary">inventory_2</span>
+              </Link>
+            </div>
           </section>
         </div>
 
@@ -341,13 +349,12 @@ export default function IAModelsPage() {
 
 function NavItem({ icon, label, href, active = false, small = false, className = "" }: { icon: string; label: string; href: string; active?: boolean; small?: boolean; className?: string }) {
   return (
-    <Link 
-      href={href} 
-      className={`flex items-center gap-4 px-4 py-3 transition-colors ${
-        active 
-          ? "text-cyan-400 font-bold bg-slate-800/50" 
+    <Link
+      href={href}
+      className={`flex items-center gap-4 px-4 py-3 transition-colors ${active
+          ? "text-cyan-400 font-bold bg-slate-800/50"
           : "text-slate-400 hover:bg-slate-800 hover:text-white"
-      } ${small ? "text-sm" : ""} ${className}`}
+        } ${small ? "text-sm" : ""} ${className}`}
     >
       <span className={`material-symbols-outlined ${small ? "text-base" : ""}`}>{icon}</span>
       <span>{label}</span>

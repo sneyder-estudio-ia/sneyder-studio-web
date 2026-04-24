@@ -6,9 +6,9 @@ const {
 } = require("@modelcontextprotocol/sdk/types.js");
 
 // Credenciales proporcionadas por el usuario
-const CLIENT_ID = 'AbJKesGBDS9w1T1Rh0eSGvvuZYgL1LF08RcZYou_Lvp5vfM7sFix-ZCWVXhNGDKtYkjKMTRv0enyQeZF';
-const SECRET = 'EN7BfglIPEM79-7UsBbiQ2RVqVxCqUL-ObxUDAhQMtkw3EBKOhVxj5Objz2xqnOgZ69fXB5oYPRoH7ND';
-const PAYPAL_API = 'https://api-m.sandbox.paypal.com';
+const CLIENT_ID = 'AYRp6FMZnmtwv6wCwMfx66DAHQMFRBDGvtE1xnE3zcCD8G-Z-dBFgjX0tSnW5KqHKyO5XxMY5PQAi3E2';
+const SECRET = 'EFoDV3FQWdszqE3kB1vdt5MRWm2JLD36GrNxO0aGZy76PUUhDpHbIAppHEONsIvTU1OKGTYtw-lC67nf';
+const PAYPAL_API = 'https://api-m.paypal.com';
 
 /**
  * Obtiene un token de acceso OAuth2 de PayPal
@@ -53,7 +53,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
     tools: [
       {
         name: "get_paypal_balance",
-        description: "Obtiene el saldo actual de la cuenta de PayPal (Sandbox)",
+        description: "Obtiene el saldo actual de la cuenta de PayPal (Producción)",
         inputSchema: {
           type: "object",
           properties: {},

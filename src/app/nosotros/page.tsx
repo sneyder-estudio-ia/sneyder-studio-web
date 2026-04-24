@@ -55,7 +55,7 @@ export default function NosotrosPage() {
             <span className="material-symbols-outlined">menu</span>
           </button>
           <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-            <Image 
+            <Image
               src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
               alt="Sneyder Studio"
               width={140}
@@ -66,8 +66,8 @@ export default function NosotrosPage() {
         </div>
         {user ? (
           <div className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-cyan-400/30">
-            <Image 
-              alt="User Avatar" 
+            <Image
+              alt="User Avatar"
               src={userProfile?.avatar_url || user.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuCO8RUk1wD7WV7O7IKZ_NBnLhlsnuVdHeC9x_CyLRsEpavDT9Qu9rC4-F4JAFIMwExYTNXtPsW04RAgXxe2vZ_1xgd0Wpqlz62JTPKFItouFbiVzuuvaA3Jr4zodwxrF3k5SScHvPKbmmQvNvCnMsjMY1m7yzSHBq-NVdD2N3qaTUfNHCwYii6gD_VVnTZrwbjzB-EmuUn_Y4QYasiBWkPdcLN2PPRgr4tyrGNvjDYnaz1WSLw73itY4B6zTZAWRKzhDVirP2Wyrcw"}
               width={32}
               height={32}
@@ -82,10 +82,10 @@ export default function NosotrosPage() {
         <div className="p-8 flex flex-col gap-2">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-slate-800">
-                <Image 
-                  src={userProfile?.avatar_url || user?.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"} 
-                  alt="User" width={48} height={48} 
-                />
+              <Image
+                src={userProfile?.avatar_url || user?.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"}
+                alt="User" width={48} height={48}
+              />
             </div>
             <div><p className="font-bold text-white truncate">{userProfile?.manager_name?.split(' ')[0] || user?.displayName?.split(' ')[0] || "Visitante"}</p></div>
           </div>

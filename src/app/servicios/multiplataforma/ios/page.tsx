@@ -48,10 +48,18 @@ export default function IOSPlatformPage() {
                 Diseñamos para el ecosistema Apple con una precisión milimétrica. Flutter nos permite entregar interfaces fluidas y gestos naturales que los usuarios de iOS esperan, con un rendimiento que desafía a lo nativo.
               </p>
               <div className="flex flex-wrap gap-4">
-                <div className="px-6 py-3 bg-white text-[#0c1324] font-bold rounded-sm hover:scale-105 transition-transform flex items-center gap-2">
-                  <span className="material-symbols-outlined">design_services</span>
-                  Diseñar App Premium
-                </div>
+                <Link href="/contacto">
+                  <div className="px-6 py-3 bg-white text-[#0c1324] font-bold rounded-sm hover:scale-105 transition-transform flex items-center gap-2 cursor-pointer">
+                    <span className="material-symbols-outlined">design_services</span>
+                    Diseñar App Premium
+                  </div>
+                </Link>
+                <Link href="/recurso-adquirido">
+                  <div className="px-6 py-3 bg-white/5 border border-white/10 text-white font-bold rounded-sm hover:bg-white/10 transition-all flex items-center gap-2 cursor-pointer">
+                    <span className="material-symbols-outlined text-[#89ceff] text-lg">inventory_2</span>
+                    Recurso Adquirido
+                  </div>
+                </Link>
               </div>
             </div>
             <div className="flex-1 relative w-full aspect-square md:aspect-video rounded-sm overflow-hidden border border-white/5 shadow-2xl">

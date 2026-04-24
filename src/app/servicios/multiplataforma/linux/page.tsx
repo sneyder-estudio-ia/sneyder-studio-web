@@ -48,9 +48,23 @@ export default function LinuxPlatformPage() {
               <p className="text-lg text-[#c6c6cd] leading-relaxed mb-10">
                 Llevamos el desarrollo de vanguardia al kernel. Diseñamos aplicaciones para sistemas Linux que demandan eficiencia extrema, seguridad de grado militar y una estabilidad inquebrantable.
               </p>
-              <div className="p-6 bg-white/5 border border-white/10 rounded-sm font-mono text-sm mb-12">
+              <div className="p-6 bg-white/5 border border-white/10 rounded-sm font-mono text-sm mb-8">
                  <p className="text-[#2fd9f4]">$ sudo snap install sneyder-studio-app</p>
                  <p className="text-xs text-slate-500 mt-2"># Construyendo el futuro del open source con Flutter</p>
+              </div>
+              <div className="flex flex-wrap gap-4 mb-12">
+                <Link href="/contacto">
+                  <div className="px-6 py-3 bg-[#2fd9f4] text-[#00363e] font-bold rounded-sm hover:scale-105 transition-transform flex items-center gap-2 cursor-pointer font-sans">
+                    <span className="material-symbols-outlined">terminal</span>
+                    Solicitar Deploy
+                  </div>
+                </Link>
+                <Link href="/recurso-adquirido">
+                  <div className="px-6 py-3 bg-white/5 border border-white/10 text-white font-bold rounded-sm hover:bg-white/10 transition-all flex items-center gap-2 cursor-pointer font-sans">
+                    <span className="material-symbols-outlined text-[#2fd9f4] text-lg">inventory_2</span>
+                    Recurso Adquirido
+                  </div>
+                </Link>
               </div>
             </div>
             <div className="relative aspect-video rounded-sm overflow-hidden border border-[#2fd9f4]/20 shadow-[0_0_50px_rgba(47,217,244,0.1)]">

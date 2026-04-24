@@ -1,22 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, use } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { auth, db } from "@/lib/firebase";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { auth } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 type PaymentView = 'selection' | 'processing' | 'success' | 'error';
 
-export default function PayPalPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const searchParams = useSearchParams();
-  const monthStr = searchParams.get('month');
-  const month = monthStr ? parseInt(monthStr) : null;
-  
-  const [order, setOrder] = useState<any>(null);
+const ADMIN_EMAIL = "sneyder23081994@gmail.com";
+
+export default function TestPaymentPage() {
+  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [view, setView] = useState<PaymentView>('selection');
   const [errorMsg, setErrorMsg] = useState('');
@@ -25,66 +21,17 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
   const PAYPAL_CLIENT_ID = process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID || "";
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        if (!isLoading) router.replace('/');
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (!currentUser || currentUser.email !== ADMIN_EMAIL) {
+        router.replace('/');
         return;
       }
-
-      try {
-        const docRef = doc(db, 'orders', id);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setOrder({ id: docSnap.id, ...docSnap.data() });
-        }
-      } catch (err) {
-        console.error("Error loading order for paypal:", err);
-      } finally {
-        setIsLoading(false);
-      }
+      setUser(currentUser);
+      setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [id, router, isLoading]);
-
-  const handleUpdateDatabase = async (details: any) => {
-    if (!order || !month) return;
-    
-    try {
-      const docRef = doc(db, 'orders', id);
-      
-      // Update months_paid if it's the next sequential month
-      if (month > (order.months_paid || 0)) {
-        await updateDoc(docRef, {
-          months_paid: month
-        });
-      }
-
-      // Record the transaction in a separate collection or log it
-      const transactionId = details.id;
-      const paymentRef = doc(db, 'payments', transactionId);
-      await setDoc(paymentRef, {
-        order_id: id,
-        user_id: auth.currentUser?.uid,
-        amount: details.purchase_units[0].amount.value,
-        currency: details.purchase_units[0].amount.currency_code,
-        status: details.status,
-        month_paid: month,
-        paypal_details: details,
-        created_at: new Date().toISOString()
-      });
-
-      setView('success');
-      setTimeout(() => {
-        router.push(`/mis-pedidos/${id}/pagar`);
-      }, 3000);
-    } catch (err) {
-      console.error("Error updating payment state:", err);
-      setErrorMsg("Error al registrar el pago en nuestra base de datos. Por favor contacta a soporte.");
-      setView('error');
-    }
-  };
+  }, [router]);
 
   if (isLoading) {
     return (
@@ -94,7 +41,7 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
     );
   }
 
-  const amount = order ? (order.total / 6).toFixed(2) : "0.00";
+  const amount = "1.00";
 
   return (
     <PayPalScriptProvider options={{ 
@@ -103,7 +50,6 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
       intent: "capture"
     }}>
       <div className="bg-[#f5f7fa] min-h-screen font-sans text-[#2c2e2f]">
-        {/* PayPal Style Navbar */}
         <nav className="bg-white border-b border-slate-200 py-4 flex justify-center relative">
           <img 
             src="https://www.paypalobjects.com/webstatic/mktg/logo/pp_cc_mark_111x69.jpg" 
@@ -114,13 +60,12 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
 
         <main className="max-w-4xl mx-auto p-6 md:p-12 flex flex-col md:flex-row gap-8">
           
-          {/* Left Side: Order Summary */}
           <div className="flex-1">
             <div className="bg-white p-6 md:p-10 rounded-2xl shadow-sm border border-slate-200">
               <div className="flex justify-between items-center mb-10">
                  <div>
-                    <h2 className="text-xl font-bold text-[#003087]">Pagar con PayPal</h2>
-                    <p className="text-xs text-slate-500 font-bold mt-1">Sneyder Studio - Factura #{id.slice(0,8).toUpperCase()}</p>
+                    <h2 className="text-xl font-bold text-[#003087]">Prueba de Pago Real</h2>
+                    <p className="text-xs text-slate-500 font-bold mt-1">Sneyder Studio - Verificación de Integración</p>
                  </div>
                  <div className="text-right">
                     <p className="text-2xl font-black text-[#003087]">${amount}</p>
@@ -130,7 +75,7 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
 
               <div className="space-y-4 py-6 border-y border-slate-50">
                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-500">Cuota Mensual {month}/6</span>
+                    <span className="text-slate-500">Monto de Prueba</span>
                     <span className="font-bold text-[#003087]">${amount}</span>
                  </div>
                  <div className="flex justify-between text-sm">
@@ -140,13 +85,18 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
               </div>
 
               <div className="flex justify-between items-center pt-6">
-                 <span className="text-lg font-black text-[#003087]">Total</span>
+                 <span className="text-lg font-black text-[#003087]">Total a Pagar</span>
                  <span className="text-lg font-black text-[#003087]">${amount} USD</span>
+              </div>
+
+              <div className="mt-8 p-4 bg-blue-50 border border-blue-100 rounded-xl">
+                <p className="text-[11px] text-blue-800 leading-relaxed">
+                  <span className="font-bold uppercase tracking-tight">Nota:</span> Este es un pago real de $1.00 para verificar que la configuración de producción sea correcta. El dinero será acreditado a la cuenta configurada.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Right Side: PayPal Buttons */}
           <div className="w-full md:w-[420px]">
             <div className="bg-white rounded-2xl shadow-2xl shadow-slate-200/60 border border-slate-200 p-8 min-h-[460px] flex flex-col relative overflow-hidden">
               
@@ -158,7 +108,7 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
                    </div>
                    <div className="space-y-2">
                       <p className="text-lg font-black text-[#003087]">Procesando Transacción</p>
-                      <p className="text-xs text-slate-400 leading-relaxed">No cierres esta ventana mientras confirmamos tu pago...</p>
+                      <p className="text-xs text-slate-400 leading-relaxed">No cierres esta ventana mientras confirmamos tu pago de prueba...</p>
                    </div>
                 </div>
               )}
@@ -169,9 +119,14 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
                       <span className="material-symbols-outlined text-green-500 text-4xl">check_circle</span>
                    </div>
                    <div className="space-y-2">
-                      <p className="text-xl font-black text-[#003087]">¡Pago Exitoso!</p>
-                      <p className="text-sm text-slate-500">Tu cuota ha sido procesada correctamente.</p>
-                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-4">Redirigiendo...</p>
+                      <p className="text-xl font-black text-[#003087]">¡Prueba Exitosa!</p>
+                      <p className="text-sm text-slate-500">La integración real de PayPal está funcionando.</p>
+                      <button 
+                        onClick={() => router.push('/admin')}
+                        className="mt-6 px-10 py-3 bg-[#0070ba] text-white rounded-full font-bold hover:bg-[#005ea6] transition-all"
+                      >
+                        Volver al Panel
+                      </button>
                    </div>
                 </div>
               )}
@@ -182,8 +137,8 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
                       <span className="material-symbols-outlined text-red-500 text-3xl">error</span>
                    </div>
                    <div className="space-y-2">
-                      <p className="text-lg font-black text-[#003087]">Algo salió mal</p>
-                      <p className="text-xs text-red-600 px-4">{errorMsg || "Hubo un problema al procesar el pago."}</p>
+                      <p className="text-lg font-black text-[#003087]">Fallo en la Prueba</p>
+                      <p className="text-xs text-red-600 px-4">{errorMsg || "Hubo un problema al procesar el pago de prueba."}</p>
                    </div>
                    <button 
                      onClick={() => setView('selection')}
@@ -197,8 +152,8 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
               {view === 'selection' && (
                 <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 flex-1 flex flex-col">
                   <div className="space-y-2">
-                    <h3 className="text-lg font-black text-[#003087]">Finalizar Pago</h3>
-                    <p className="text-xs text-slate-400">Selecciona tu método de pago preferido para completar la transacción de forma segura.</p>
+                    <h3 className="text-lg font-black text-[#003087]">Finalizar Prueba</h3>
+                    <p className="text-xs text-slate-400">Selecciona el método de pago para verificar la conexión con PayPal.</p>
                   </div>
 
                   <div className="flex-1 flex flex-col justify-center">
@@ -216,42 +171,40 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
                               currency_code: "USD",
                               value: amount,
                             },
-                            description: `Cuota ${month} - Proyecto ${order.items?.[0]?.name || id}`
+                            description: "Sneyder Studio - Prueba de Pago Real 1.00 USD"
                           }],
                         });
                       }}
                       onApprove={async (data, actions) => {
                         if (actions.order) {
+                          setView('processing');
                           const details = await actions.order.capture();
-                          await handleUpdateDatabase(details);
+                          console.log("Test Payment Details:", details);
+                          setView('success');
                         }
                       }}
                       onError={(err) => {
-                        console.error("PayPal Error:", err);
-                        setErrorMsg("Error en la plataforma de PayPal. Intente más tarde.");
+                        console.error("PayPal Test Error:", err);
+                        setErrorMsg("Error en la plataforma de PayPal. Verifica las credenciales en .env.local");
                         setView('error');
-                      }}
-                      onCancel={() => {
-                        // User cancelled
                       }}
                     />
                   </div>
 
                   <div className="pt-8 flex flex-col items-center gap-6 border-t border-slate-50">
-                    <Link href={`/mis-pedidos/${id}/pagar`}>
+                    <Link href="/admin">
                       <button className="text-sm font-bold text-[#0070ba] hover:underline flex items-center gap-1">
                         <span className="material-symbols-outlined text-sm">arrow_back</span>
-                        Cancelar y volver
+                        Volver a Administración
                       </button>
                     </Link>
                   </div>
                 </div>
               )}
 
-              {/* Security Notice */}
               <div className="mt-auto pt-8 border-t border-slate-50 flex items-center justify-center gap-3 text-slate-300">
                  <span className="material-symbols-outlined text-lg">verified_user</span>
-                 <p className="text-[9px] font-bold uppercase tracking-widest">Pago Seguro y Encriptado</p>
+                 <p className="text-[9px] font-bold uppercase tracking-widest">Entorno de Producción Verificado</p>
               </div>
             </div>
           </div>
@@ -259,12 +212,7 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
 
         <footer className="bg-slate-50 py-12 mt-20 border-t border-slate-200">
            <div className="max-w-4xl mx-auto px-6 text-center space-y-6">
-              <div className="flex justify-center gap-10 text-[10px] font-black text-slate-400 uppercase tracking-widest">
-                 <a href="#" className="hover:text-[#0070ba] transition-colors">Legal</a>
-                 <a href="#" className="hover:text-[#0070ba] transition-colors">Privacidad</a>
-                 <a href="#" className="hover:text-[#0070ba] transition-colors">Seguridad</a>
-              </div>
-              <p className="text-[9px] text-slate-400 font-bold opacity-80 uppercase tracking-tighter">© 1999-2026 PayPal S.A. Todos los derechos reservados.</p>
+              <p className="text-[9px] text-slate-400 font-bold opacity-80 uppercase tracking-tighter">Sneyder Studio Control Panel - Verificación de Seguridad PayPal</p>
            </div>
         </footer>
       </div>

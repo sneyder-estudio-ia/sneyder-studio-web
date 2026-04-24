@@ -1,146 +1,152 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
+import React from "react";
+import Link from "next/link";
+import Image from "next/image";
 
-export default function EntregaPage() {
+export default function ProtocoloEntregaPage() {
+  const steps = [
+    {
+      id: 1,
+      title: "Inicio y Configuración",
+      icon: "rocket_launch",
+      desc: "Se habilitan las credenciales básicas (Correo Administrativo) para que el cliente pueda supervisar el avance de los servicios vinculados.",
+      status: "Acceso Parcial"
+    },
+    {
+      id: 2,
+      title: "Desarrollo y Pruebas",
+      icon: "frame_inspect",
+      desc: "El proyecto se construye en servidores de Sneyder Studio. El cliente recibe reportes periódicos pero el código fuente permanece en reserva.",
+      status: "Reserva de Dominio"
+    },
+    {
+      id: 3,
+      title: "Liquidación y Saldo",
+      icon: "account_balance_wallet",
+      desc: "Al finalizar el desarrollo, se solicita la niquilación del saldo pendiente. Este paso es el disparador automático para la liberación de activos.",
+      status: "Punto Crítico"
+    },
+    {
+      id: 4,
+      title: "Liberación de Activos",
+      icon: "verified_user",
+      desc: "Con saldo cero, el sistema desbloquea instantáneamente la descarga del código fuente, contraseñas maestras y certificados de propiedad.",
+      status: "Acceso Total"
+    }
+  ];
+
   return (
-    <main className="min-h-screen bg-[#050810] text-white selection:bg-tertiary/30">
-      {/* Background Orbs */}
+    <div className="bg-[#0a0e1a] text-white min-h-screen selection:bg-cyan-400/30">
+      {/* Background Decor */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-tertiary/10 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-[-10%] right-[-10%] w-[60%] h-[60%] bg-blue-600/5 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] left-[-10%] w-[60%] h-[60%] bg-purple-600/5 rounded-full blur-[120px]"></div>
       </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-6 py-24 md:py-32">
-        {/* Header */}
-        <header className="mb-16 animate-fade-in">
-          <div className="flex items-center gap-2 mb-6">
-            <div className="h-px w-8 bg-tertiary"></div>
-            <span className="text-tertiary text-[10px] uppercase font-black tracking-[0.3em]">Protocolo Oficial</span>
+      <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-6 h-20">
+        <div className="flex items-center gap-4">
+          <Link href="/recurso-adquirido">
+            <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-cyan-400 hover:bg-cyan-400 hover:text-black transition-all">
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+          </Link>
+          <div>
+            <h1 className="text-xl font-bold font-headline uppercase tracking-tight text-white">Seguridad & Entrega</h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Protocolo Sneyder Studio</p>
           </div>
-          <h1 className="text-4xl md:text-6xl font-headline font-black mb-8 leading-tight">
-            Información de <span className="text-tertiary">Entrega del Producto</span>
-          </h1>
-          <p className="text-slate-400 text-lg md:text-xl leading-relaxed max-w-2xl">
-            Transparencia, seguridad y control total sobre los activos digitales de su empresa durante todo el proceso de desarrollo.
+        </div>
+      </header>
+
+      <main className="pt-32 pb-24 px-6 max-w-4xl mx-auto relative z-10">
+        {/* Intro */}
+        <section className="text-center mb-20">
+          <div className="inline-block px-4 py-1.5 bg-cyan-400/10 border border-cyan-400/20 rounded-full mb-6">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400 flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+              Sistema de Transparencia Digital
+            </span>
+          </div>
+          <h2 className="text-4xl md:text-6xl font-headline font-black italic uppercase tracking-tighter mb-6 leading-tight">
+            ¿Cómo funciona nuestro <span className="text-cyan-400">Sistema de Entrega?</span>
+          </h2>
+          <p className="text-slate-400 text-lg max-w-2xl mx-auto leading-relaxed mb-10">
+            Hemos diseñado un protocolo de seguridad que protege tanto el trabajo intelectual de nuestro estudio como la inversión de nuestros clientes.
           </p>
-        </header>
-
-        {/* Content Section */}
-        <div className="space-y-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
           
-          {/* Section 1 */}
-          <section className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-xl">
-            <div className="flex items-start gap-6">
-              <div className="w-12 h-12 bg-tertiary/20 rounded-2xl flex items-center justify-center shrink-0 border border-tertiary/30">
-                <span className="material-symbols-outlined text-tertiary">mail</span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-4">1. Identidad Digital Centralizada</h2>
-                <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-                  Para garantizar la integridad y escalabilidad de su proyecto, Sneyder Studio crea una cuenta de correo electrónico maestra dedicada exclusivamente a su empresa. Todos los recursos, desde dominios hasta bases de datos y consolas de administración, se vinculan y "atan" a esta identidad digital única.
-                </p>
-                <ul className="mt-6 space-y-3">
-                  {['Registro de dominios y certificados SSL', 'Consolas de Google Cloud y Firebase', 'Cuentas de desarrollador en App Store y Play Store', 'Servidores y servicios de infraestructura cloud'].map((item, i) => (
-                    <li key={i} className="flex items-center gap-3 text-xs text-slate-300">
-                      <div className="w-1 h-1 bg-tertiary rounded-full"></div>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
-              </div>
+          <div className="flex justify-center">
+            <div className="p-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-sm">
+              <Image 
+                src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+                alt="Sneyder Studio"
+                width={140}
+                height={35}
+                className="rounded-xl opacity-80"
+              />
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Section 2 */}
-          <section className="bg-white/5 border border-white/10 rounded-3xl p-8 md:p-12 backdrop-blur-xl">
-            <div className="flex items-start gap-6">
-              <div className="w-12 h-12 bg-blue-500/20 rounded-2xl flex items-center justify-center shrink-0 border border-blue-500/30">
-                <span className="material-symbols-outlined text-blue-400">admin_panel_settings</span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-4">2. Uso vs. Gestión Administrativa</h2>
-                <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-                  Durante el desarrollo y fase de entrega inicial, el cliente tiene pleno derecho al uso de la aplicación o web para sus operaciones comerciales. Sin embargo, por seguridad técnica y financiera, **Sneyder Studio mantiene el control administrativo de las credenciales de ajuste, dominios de correo y código fuente**.
-                </p>
-                <div className="mt-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
-                  <p className="text-yellow-200 text-xs leading-relaxed italic">
-                    "Usted opera el negocio, nosotros resguardamos la tecnología hasta la finalización del contrato."
+        {/* Timeline */}
+        <div className="space-y-4 relative">
+          <div className="absolute left-[39px] top-10 bottom-10 w-0.5 bg-gradient-to-b from-cyan-400/0 via-cyan-400/20 to-cyan-400/0 hidden md:block"></div>
+          
+          {steps.map((step, i) => (
+            <div key={step.id} className="relative group animate-fade-in-up" style={{ animationDelay: `${i * 0.1}s` }}>
+              <div className="bg-white/5 border border-white/5 rounded-[2.5rem] p-8 md:p-10 hover:bg-white/[0.07] hover:border-white/10 transition-all flex flex-col md:flex-row items-center md:items-start gap-8 backdrop-blur-sm">
+                <div className="w-20 h-20 bg-slate-900 border border-white/10 rounded-2xl flex items-center justify-center shrink-0 relative z-10 group-hover:border-cyan-400/50 transition-colors shadow-2xl">
+                  <span className="material-symbols-outlined text-4xl text-cyan-400 group-hover:scale-110 transition-transform">{step.icon}</span>
+                  <div className="absolute -top-3 -left-3 w-8 h-8 bg-cyan-400 text-black font-black text-xs rounded-full flex items-center justify-center shadow-lg">
+                    {step.id}
+                  </div>
+                </div>
+                
+                <div className="flex-1 text-center md:text-left">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
+                    <h3 className="text-2xl font-bold italic uppercase tracking-tight">{step.title}</h3>
+                    <span className="px-4 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-slate-400 group-hover:text-cyan-400 group-hover:border-cyan-400/30 transition-colors">
+                      {step.status}
+                    </span>
+                  </div>
+                  <p className="text-slate-400 leading-relaxed font-light text-base">
+                    {step.desc}
                   </p>
                 </div>
               </div>
             </div>
-          </section>
-
-          {/* Section 3 */}
-          <section className="bg-tertiary/5 border border-tertiary/10 rounded-3xl p-8 md:p-12 backdrop-blur-xl">
-            <div className="flex items-start gap-6">
-              <div className="w-12 h-12 bg-green-500/20 rounded-2xl flex items-center justify-center shrink-0 border border-green-500/30">
-                <span className="material-symbols-outlined text-green-400">key</span>
-              </div>
-              <div>
-                <h2 className="text-2xl font-bold mb-4">3. Liquidación y Transferencia de Propiedad</h2>
-                <p className="text-slate-400 leading-relaxed text-sm md:text-base">
-                  El proceso de liberación de contraseñas es automático tras la liquidación total de la deuda asociada al proyecto. Una vez niquilada la deuda pendiente:
-                </p>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
-                  <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <h4 className="text-tertiary font-bold text-xs uppercase tracking-widest mb-2">Entrega Total</h4>
-                    <p className="text-slate-500 text-[10px]">Liberación de todas las contraseñas maestras y acceso root a cada servicio.</p>
-                  </div>
-                  <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-                    <h4 className="text-tertiary font-bold text-xs uppercase tracking-widest mb-2">Propiedad Legal</h4>
-                    <p className="text-slate-500 text-[10px]">Transferencia completa de la titularidad de los dominios y activos digitales.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </section>
-
-          {/* Legal Notice */}
-          <section className="bg-red-500/5 border border-red-500/20 rounded-3xl p-6 md:p-8 backdrop-blur-xl flex flex-col md:flex-row items-center justify-between gap-6">
-            <div className="flex items-center gap-4 text-left">
-              <div className="w-10 h-10 bg-red-500/20 rounded-full flex items-center justify-center shrink-0 border border-red-500/30">
-                <span className="material-symbols-outlined text-red-500 text-xl">gavel</span>
-              </div>
-              <div>
-                <h4 className="text-white font-bold text-sm mb-1">Importancia Legal</h4>
-                <p className="text-slate-400 text-xs leading-relaxed max-w-xl">
-                  Es de vital importancia leer nuestro <span className="text-white font-bold underline cursor-pointer">Contrato de Servicios</span>, ya que todas nuestras operaciones y entregas se rigen estrictamente bajo el <span className="text-red-400 font-black">Marco Legal Costarricense</span>.
-                </p>
-              </div>
-            </div>
-            <Link 
-              href="/"
-              className="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold uppercase text-[9px] tracking-[0.2em] hover:bg-red-500/10 hover:border-red-500/30 transition-all shrink-0"
-            >
-              Ver Contrato
-            </Link>
-          </section>
-
-          {/* CTA / Footer Info */}
-          <div className="text-center pt-8">
-            <p className="text-slate-500 text-sm mb-8">
-              ¿Tiene preguntas sobre nuestra política de entrega?
-            </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Link 
-                href="/contacto"
-                className="px-8 py-4 bg-tertiary text-black font-black uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:scale-105 transition-all shadow-[0_0_30px_rgba(0,195,255,0.3)]"
-              >
-                Volver a Contacto
-              </Link>
-              <Link 
-                href="/"
-                className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold uppercase text-[10px] tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all"
-              >
-                Ir al Inicio
-              </Link>
-            </div>
-          </div>
+          ))}
         </div>
-      </div>
-    </main>
+
+        {/* Closing card */}
+        <div className="mt-20 p-12 bg-gradient-to-br from-cyan-400/10 to-purple-500/10 border border-white/10 rounded-[3rem] text-center overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-400/10 rounded-full blur-[100px] -mr-32 -mt-32"></div>
+          <h4 className="text-3xl font-black uppercase tracking-tighter mb-4 italic">Seguridad Garantizada</h4>
+          <p className="text-slate-400 text-sm max-w-xl mx-auto leading-relaxed mb-8">
+            Este sistema automatizado asegura que el 100% de los activos sean entregados sin errores humanos una vez completada la relación comercial.
+          </p>
+          <Link href="/recurso-adquirido">
+            <button className="bg-white text-black px-10 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl shadow-cyan-400/10">
+              Volver a mi Inventario
+            </button>
+          </Link>
+        </div>
+      </main>
+
+      <footer className="py-12 text-center">
+        <p className="text-[10px] text-slate-600 uppercase tracking-[0.5em] font-bold">
+          Sneyder Studio Protocols • v2.0
+        </p>
+      </footer>
+
+      <style jsx global>{`
+        @keyframes fadeInUp {
+          from { opacity: 0; transform: translateY(30px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+      `}</style>
+    </div>
   );
 }

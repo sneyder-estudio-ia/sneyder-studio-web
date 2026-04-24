@@ -103,13 +103,23 @@ export default function ClientProfilePage() {
     <div className="bg-[#0a0e1a] text-white min-h-screen selection:bg-cyan-400/30">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-5 h-16">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <Link href="/">
-            <button className="text-cyan-400 hover:scale-110 transition-transform">
+            <button className="text-cyan-400 hover:scale-110 transition-transform p-1 rounded-full hover:bg-white/5">
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
           </Link>
-          <h1 className="text-lg font-bold tracking-tight uppercase font-headline text-cyan-400">Mi Perfil</h1>
+          <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block"></div>
+          <Link href="/" className="h-9 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <Image 
+              src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+              alt="Sneyder Studio"
+              width={120}
+              height={24}
+              className="h-full w-auto object-contain group-hover:brightness-110"
+            />
+          </Link>
+          <h1 className="text-sm font-bold tracking-tight uppercase font-headline text-cyan-400 ml-2 hidden xs:block">Mi Perfil</h1>
         </div>
         <div>
           {!isEditing ? (

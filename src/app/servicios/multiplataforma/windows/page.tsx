@@ -43,9 +43,23 @@ export default function WindowsPlatformPage() {
               Potencia <br/> 
               <span className="text-[#89ceff]">Windows</span> Desktop
             </h1>
-            <p className="text-xl text-[#c6c6cd] leading-relaxed max-w-4xl mb-12">
+            <p className="text-xl text-[#c6c6cd] leading-relaxed max-w-4xl mb-8">
               Llevamos Flutter al escritorio para construir herramientas empresariales de alto rendimiento. Aplicaciones nativas de 64 bits que aprovechan cada núcleo de su procesador y cada píxel de su pantalla profesional.
             </p>
+            <div className="flex flex-wrap gap-4 mb-12">
+              <Link href="/contacto">
+                <div className="px-8 py-3 bg-[#89ceff] text-[#0c1324] font-bold rounded-sm hover:scale-105 transition-transform flex items-center gap-2 cursor-pointer">
+                  <span className="material-symbols-outlined">launch</span>
+                  Solicitar Cotización
+                </div>
+              </Link>
+              <Link href="/recurso-adquirido">
+                <div className="px-8 py-3 bg-white/5 border border-white/10 text-white font-bold rounded-sm hover:bg-white/10 transition-all flex items-center gap-2 cursor-pointer">
+                  <span className="material-symbols-outlined text-[#89ceff] text-lg">inventory_2</span>
+                  Recurso Adquirido
+                </div>
+              </Link>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-stretch mb-24">

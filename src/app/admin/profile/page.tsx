@@ -88,24 +88,33 @@ export default function ProfilePage() {
       `}</style>
       
       {/* TopAppBar */}
-      <header className="fixed top-0 w-full z-50 bg-[#0c1324] backdrop-blur-xl bg-opacity-60 shadow-[0px_20px_50px_rgba(12,19,36,0.4)] flex justify-between items-center px-4 md:px-6 py-4">
-        <div className="flex items-center gap-3 md:gap-4">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#89ceff] hover:bg-white/5 p-1 rounded transition-colors">
-            <span className="material-symbols-outlined">{isMenuOpen ? "close" : "menu"}</span>
+      <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="text-[#2fd9f4] hover:bg-slate-800/50 p-2 rounded transition-all"
+          >
+            <span className="material-symbols-outlined">menu</span>
           </button>
-          <Link href="/admin">
-            <span className="text-lg md:text-xl font-bold tracking-tighter text-[#2fd9f4] font-headline uppercase">SNEYDER STUDIO</span>
-          </Link>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full overflow-hidden border border-tertiary/20">
-            <Image 
-              alt="User profile avatar" 
-              src="https://lh3.googleusercontent.com/aida-public/AB6AXuCEuvLSphVUOtwaDyUT1sq8lcbsS0VkaMs8dw85lYH7LcPzWHNhbFtUBejOqqvc1TUuCQ95U4HoDeMIQB_vnf-XQVJKjqWQVOCSGCMX-zKKxu5iw38KhXWMyluljmJSheJTR-3mKAuASkH68qHyZmbCyRIeJ2ntiaAA009T5d1V4LFKgzHbezOnU2vsSSOhaiNvncl5Dl0JkfmF3HeKyQ_27602d2-ThKLx3NCvmfMIBrAi9G3LL6w4ViqlQc6TCacCviAsqzGOIUY" 
-              width={40} 
-              height={40} 
-              className="object-cover"
-            />
+          <div className="flex items-center gap-2">
+            <Link href="/admin">
+              <button className="text-[#89ceff] p-1 hover:bg-slate-800/50 rounded transition-all">
+                <span className="material-symbols-outlined">arrow_back</span>
+              </button>
+            </Link>
+            <h1 className="font-['Space_Grotesk'] tracking-tight text-lg font-bold text-[#89ceff] whitespace-nowrap uppercase">
+              Perfil
+            </h1>
+            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
+            <div className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+              <Image 
+                src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+                alt="Sneyder Studio"
+                width={150}
+                height={32}
+                className="h-full w-auto object-contain group-hover:brightness-110"
+              />
+            </div>
           </div>
         </div>
       </header>

@@ -26,7 +26,7 @@ export default function AdminPage() {
         router.replace('/');
         return;
       }
-      
+
       setUser(currentUser);
       try {
         const profileDoc = await getDoc(doc(db, 'profiles', currentUser.uid));
@@ -38,7 +38,7 @@ export default function AdminPage() {
       }
       setIsChecking(false);
     });
-    
+
     return () => unsubscribe();
   }, [router]);
 
@@ -101,7 +101,7 @@ export default function AdminPage() {
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
         <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0"
           >
@@ -112,15 +112,15 @@ export default function AdminPage() {
               Administración
             </h1>
             <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
-            <div className="h-6 w-auto relative">
-              <Image 
+            <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+              <Image
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
-                width={120}
-                height={24}
-                className="h-full w-auto object-contain"
+                width={150}
+                height={32}
+                className="h-full w-auto object-contain group-hover:brightness-110"
               />
-            </div>
+            </Link>
           </div>
         </div>
         <div className="flex items-center shrink-0">
@@ -185,29 +185,29 @@ export default function AdminPage() {
             <h2 className="font-headline text-base md:text-lg font-bold tracking-tight mb-6 md:mb-8">Acciones Rápidas</h2>
             <div className="grid grid-cols-2 gap-3 md:gap-4">
               <QuickActionButton icon="person_add" label="Crear Usuario" />
-              <QuickActionButton 
-                icon="add_shopping_cart" 
-                label="Nuevo Pedido" 
+              <QuickActionButton
+                icon="add_shopping_cart"
+                label="Nuevo Pedido"
                 onClick={createSampleOrder}
               />
               <Link href="/admin/settings" className="contents">
                 <QuickActionButton icon="settings" label="Ajustes Admin" />
               </Link>
-              <QuickActionButton 
-                icon="mop" 
-                label="Mantenimiento" 
+              <QuickActionButton
+                icon="mop"
+                label="Mantenimiento"
                 onClick={async () => {
                   if (confirm("¿Ejecutar mantenimiento? Se limpiará el caché local y se optimizará el espacio.")) {
                     try {
                       // Limpiar caché de Firestore si es posible
                       const { terminate, clearIndexedDbPersistence } = await import("firebase/firestore");
-                      await terminate(db).catch(() => {});
-                      await clearIndexedDbPersistence(db).catch(() => {});
-                      
+                      await terminate(db).catch(() => { });
+                      await clearIndexedDbPersistence(db).catch(() => { });
+
                       // Limpiar localStorage y sessionStorage
                       localStorage.clear();
                       sessionStorage.clear();
-                      
+
                       alert("Mantenimiento completado: Caché limpiado y archivos temporales optimizados.");
                       window.location.reload();
                     } catch (err) {
@@ -217,6 +217,9 @@ export default function AdminPage() {
                   }
                 }}
               />
+              <Link href="/admin/test-payment" className="contents">
+                <QuickActionButton icon="payments" label="Prueba de Pago" />
+              </Link>
               <QuickActionButton icon="support_agent" label="Soporte Técnico" />
             </div>
             <div className="mt-8 md:mt-10 p-4 bg-surface-container-lowest rounded border border-outline-variant/10">
@@ -272,7 +275,7 @@ function ActivityItem({ icon, color, text, highlight, time }: { icon: string; co
 
 function QuickActionButton({ icon, label, onClick }: { icon: string; label: string; onClick?: () => void }) {
   return (
-    <button 
+    <button
       onClick={onClick}
       className="flex flex-col items-center justify-center p-3 md:p-4 bg-surface-container rounded gap-2 md:gap-3 hover:bg-tertiary group transition-all duration-300 w-full"
     >
@@ -284,13 +287,12 @@ function QuickActionButton({ icon, label, onClick }: { icon: string; label: stri
 
 function SidebarItem({ icon, label, href, active = false }: { icon: string; label: string; href: string; active?: boolean }) {
   return (
-    <Link 
+    <Link
       href={href}
-      className={`flex items-center gap-4 p-2 rounded cursor-pointer transition-all font-headline text-xs lg:text-sm uppercase tracking-widest ${
-        active 
-          ? "text-[#2fd9f4] border-l-2 border-[#2fd9f4] bg-tertiary/5 pl-4" 
+      className={`flex items-center gap-4 p-2 rounded cursor-pointer transition-all font-headline text-xs lg:text-sm uppercase tracking-widest ${active
+          ? "text-[#2fd9f4] border-l-2 border-[#2fd9f4] bg-tertiary/5 pl-4"
           : "text-slate-500 hover:text-[#89ceff] hover:bg-[#0c1324]/50"
-      }`}
+        }`}
     >
       <span className="material-symbols-outlined">{icon}</span>
       <span>{label}</span>

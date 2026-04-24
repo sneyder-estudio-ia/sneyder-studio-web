@@ -48,10 +48,18 @@ export default function AndroidPlatformPage() {
                 Utilizando Flutter, creamos aplicaciones para Android que no solo funcionan, sino que lideran. Código nativo optimizado para una fragmentación mínima y una experiencia de usuario máxima.
               </p>
               <div className="flex flex-wrap gap-4">
-                <div className="px-6 py-3 bg-[#2fd9f4] text-[#00363e] font-bold rounded-sm hover:scale-105 transition-transform flex items-center gap-2">
-                  <span className="material-symbols-outlined">rocket_launch</span>
-                  Consultar Proyecto
-                </div>
+                <Link href="/contacto">
+                  <div className="px-6 py-3 bg-[#2fd9f4] text-[#00363e] font-bold rounded-sm hover:scale-105 transition-transform flex items-center gap-2 cursor-pointer">
+                    <span className="material-symbols-outlined">rocket_launch</span>
+                    Consultar Proyecto
+                  </div>
+                </Link>
+                <Link href="/recurso-adquirido">
+                  <div className="px-6 py-3 bg-white/5 border border-white/10 text-white font-bold rounded-sm hover:bg-white/10 transition-all flex items-center gap-2 cursor-pointer">
+                    <span className="material-symbols-outlined text-[#2fd9f4] text-lg">inventory_2</span>
+                    Recurso Adquirido
+                  </div>
+                </Link>
               </div>
             </div>
             <div className="flex-1 relative w-full aspect-square md:aspect-video rounded-sm overflow-hidden border border-white/5 shadow-2xl">

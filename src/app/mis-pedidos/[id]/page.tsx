@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState, useEffect, use } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -84,13 +85,25 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
   return (
     <div className="bg-[#0a0e1a] text-white min-h-screen pb-32">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center px-5 h-16">
-        <Link href="/mis-pedidos">
-          <button className="text-cyan-400 p-2 hover:bg-white/5 rounded-full transition-colors mr-3 flex items-center">
-            <span className="material-symbols-outlined">arrow_back</span>
-          </button>
-        </Link>
-        <h1 className="text-lg font-bold uppercase tracking-tight font-headline text-cyan-400">Detalles del Proyecto</h1>
+      <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center px-5 h-16 justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/mis-pedidos">
+            <button className="text-cyan-400 p-2 hover:bg-white/5 rounded-full transition-colors flex items-center">
+              <span className="material-symbols-outlined">arrow_back</span>
+            </button>
+          </Link>
+          <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block"></div>
+          <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <Image 
+              src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+              alt="Sneyder Studio"
+              width={140}
+              height={28}
+              className="h-full w-auto object-contain group-hover:brightness-110"
+            />
+          </Link>
+          <h1 className="text-sm font-bold uppercase tracking-tight font-headline text-cyan-400 ml-2 hidden xs:block">Detalles</h1>
+        </div>
       </header>
 
       <main className="pt-24 px-5 max-w-2xl mx-auto space-y-8">
@@ -163,16 +176,21 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               Pagar Cuota Mensual
             </button>
           </Link>
+
+          <Link href={`/recurso-adquirido?orderId=${order.id}`} className="block w-full">
+            <button className="w-full bg-white/5 border border-white/10 text-white py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs hover:bg-white/10 transition-all flex items-center justify-center gap-3">
+              <span className="material-symbols-outlined text-cyan-400">inventory_2</span>
+              Recurso Adquirido
+            </button>
+          </Link>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button className="flex items-center justify-center gap-3 p-5 bg-[#111827]/40 border border-white/5 rounded-2xl hover:bg-slate-800/40 transition-all group">
-              <span className="material-symbols-outlined text-slate-500 group-hover:text-cyan-400 transition-colors">description</span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300 group-hover:text-white transition-colors">Descargar Factura</span>
-            </button>
-            <button className="flex items-center justify-center gap-3 p-5 bg-[#111827]/40 border border-white/5 rounded-2xl hover:bg-slate-800/40 transition-all group">
-              <span className="material-symbols-outlined text-slate-500 group-hover:text-cyan-400 transition-colors">history</span>
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300 group-hover:text-white transition-colors">Historial de Pagos</span>
-            </button>
+          <div className="flex flex-col gap-4">
+            <Link href={`/facturas?orderId=${order.id}`} className="w-full">
+              <button className="w-full flex items-center justify-center gap-3 p-5 bg-[#111827]/40 border border-white/5 rounded-2xl hover:bg-slate-800/40 transition-all group">
+                <span className="material-symbols-outlined text-slate-500 group-hover:text-cyan-400 transition-colors">description</span>
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-300 group-hover:text-white transition-colors">Ver Comprobantes</span>
+              </button>
+            </Link>
           </div>
         </div>
 
@@ -247,9 +265,14 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
             <h4 className="text-lg font-bold font-headline italic uppercase tracking-tight mb-2">¿Necesitas asistencia?</h4>
             <p className="text-xs text-slate-500 leading-relaxed max-w-sm">Nuestro equipo técnico está listo para resolver cualquier duda sobre tu proyecto o plan de pagos de forma inmediata.</p>
           </div>
-          <button className="bg-cyan-400 text-black px-10 py-3.5 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-cyan-300 transition-all active:scale-95 shadow-[0_15px_30px_rgba(34,211,238,0.15)]">
+          <a 
+            href="https://wa.me/50672065581" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="w-full bg-cyan-400 text-black px-10 py-3.5 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-cyan-300 transition-all active:scale-95 shadow-[0_15px_30px_rgba(34,211,238,0.15)] flex items-center justify-center"
+          >
             Hablar con un Agente
-          </button>
+          </a>
         </div>
       </main>
     </div>

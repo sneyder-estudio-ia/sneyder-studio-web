@@ -100,8 +100,18 @@ export default function AdminSettingsPage() {
               </button>
             </Link>
             <h1 className="font-['Space_Grotesk'] tracking-tight text-lg font-bold text-[#89ceff] whitespace-nowrap uppercase">
-              Ajuste Admin
+              Ajuste
             </h1>
+            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
+            <div className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+              <Image 
+                src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+                alt="Sneyder Studio"
+                width={150}
+                height={32}
+                className="h-full w-auto object-contain group-hover:brightness-110"
+              />
+            </div>
           </div>
         </div>
         <div className="flex items-center gap-4">

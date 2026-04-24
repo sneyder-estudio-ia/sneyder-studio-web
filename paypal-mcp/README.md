@@ -1,6 +1,6 @@
 # PayPal MCP Server
 
-Este es un servidor de Model Context Protocol (MCP) que permite interactuar con la API de PayPal (Sandbox) utilizando herramientas directas.
+Este es un servidor de Model Context Protocol (MCP) que permite interactuar con la API de PayPal (Producción) utilizando herramientas directas.
 
 ## Características
 

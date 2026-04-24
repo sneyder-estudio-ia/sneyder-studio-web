@@ -164,17 +164,17 @@ export default function VisitasPage() {
             <span className="material-symbols-outlined">menu</span>
           </button>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap">
+            <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap uppercase">
               Analítica
             </h1>
             <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
-            <div className="h-6 w-auto relative">
+            <div className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
               <Image 
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
-                width={120}
-                height={24}
-                className="h-full w-auto object-contain"
+                width={150}
+                height={32}
+                className="h-full w-auto object-contain group-hover:brightness-110"
               />
             </div>
           </div>

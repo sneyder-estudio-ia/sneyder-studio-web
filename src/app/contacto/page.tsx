@@ -85,15 +85,15 @@ export default function ContactoPage() {
 
   if (!data) return (
     <div className="bg-background min-h-screen flex items-center justify-center text-center px-6">
-       <div className="flex flex-col items-center gap-6">
-          <div className="relative w-32 h-32 mb-4">
-             <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio Logo" fill className="object-contain animate-pulse" />
-          </div>
-          <div className="w-16 h-1 bg-tertiary/20 rounded-full overflow-hidden relative">
-             <div className="absolute inset-0 bg-tertiary animate-loading-bar"></div>
-          </div>
-          <span className="text-tertiary font-bold tracking-[0.5em] uppercase text-[10px]">Preparando canales de comunicación...</span>
-       </div>
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative w-32 h-32 mb-4">
+          <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio Logo" fill className="object-contain animate-pulse" />
+        </div>
+        <div className="w-16 h-1 bg-tertiary/20 rounded-full overflow-hidden relative">
+          <div className="absolute inset-0 bg-tertiary animate-loading-bar"></div>
+        </div>
+        <span className="text-tertiary font-bold tracking-[0.5em] uppercase text-[10px]">Preparando canales de comunicación...</span>
+      </div>
     </div>
   );
 
@@ -262,10 +262,10 @@ export default function ContactoPage() {
               <div className="space-y-8">
                 <h3 className="font-headline text-3xl font-bold text-white tracking-tight">Atención Premium</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
-                   <ContactCard icon="mail" title="Correo Electrónico" value={adminSettings?.contact_email || "sneyderestudio@gmail.com"} href={`mailto:${adminSettings?.contact_email || "sneyderestudio@gmail.com"}`} />
-                   <ContactCard icon="chat" title="WhatsApp Business" value="Chat en Vivo" href={adminSettings?.whatsapp || "https://wa.me/50672065581"} />
-                   <ContactCard icon="person_search" title="LinkedIn Oficial" value="Sneyder Studio" href={adminSettings?.linkedin_url || "https://www.linkedin.com/in/sneyder-studio-2b84793b7"} />
-                   <ContactCard icon="location_on" title="Sede Central" value={adminSettings?.address || "San José, Costa Rica"} />
+                  <ContactCard icon="mail" title="Correo Electrónico" value={adminSettings?.contact_email || "sneyderestudio@gmail.com"} href={`mailto:${adminSettings?.contact_email || "sneyderestudio@gmail.com"}`} />
+                  <ContactCard icon="chat" title="WhatsApp Business" value="Chat en Vivo" href={adminSettings?.whatsapp || "https://wa.me/50672065581"} />
+                  <ContactCard icon="person_search" title="LinkedIn Oficial" value="Sneyder Studio" href={adminSettings?.linkedin_url || "https://www.linkedin.com/in/sneyder-studio-2b84793b7"} />
+                  <ContactCard icon="location_on" title="Sede Central" value={adminSettings?.address || "San José, Costa Rica"} />
                 </div>
               </div>
               <div className="pt-12 border-t border-white/5 space-y-6">
@@ -352,8 +352,8 @@ function AuthModal({ isOpen, onClose, initialView, setView }: any) {
       <div className="fixed inset-0 bg-black/80 backdrop-blur-md" onClick={onClose} />
       <div className="relative w-full max-w-lg bg-surface/90 border border-white/10 rounded-3xl p-8 backdrop-blur-xl">
         <form onSubmit={handleAuth} className="space-y-4">
-          <input type="email" placeholder="Email" className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} />
-          <input type="password" placeholder="Contraseña" className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} />
+          <input type="email" placeholder="Email" className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
+          <input type="password" placeholder="Contraseña" className="w-full bg-white/5 border border-white/10 rounded-xl p-4 text-white" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} />
           <button type="submit" className="w-full bg-tertiary py-4 rounded-xl font-bold uppercase tracking-widest text-xs">{initialView === 'login' ? 'Entrar' : 'Registrar'}</button>
         </form>
       </div>

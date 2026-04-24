@@ -25,7 +25,7 @@ export default function ServicesPage() {
     const loadContent = async () => {
       const dbData = await getCMSData();
       setData(dbData);
-      
+
       const settings = await getAdminSettings();
       setAdminSettings(settings);
     };
@@ -57,20 +57,20 @@ export default function ServicesPage() {
 
   if (!data) return (
     <div className="bg-background min-h-screen flex items-center justify-center text-center px-6">
-       <div className="flex flex-col items-center gap-6">
-          <div className="relative w-32 h-32 mb-4">
-             <Image 
-               src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
-               alt="Sneyder Studio Logo"
-               fill
-               className="object-contain animate-pulse"
-             />
-          </div>
-          <div className="w-16 h-1 bg-tertiary/20 rounded-full overflow-hidden relative">
-             <div className="absolute inset-0 bg-tertiary animate-loading-bar"></div>
-          </div>
-          <span className="text-tertiary font-bold tracking-[0.5em] uppercase text-[10px]">Cargando servicios de Sneyder Studio...</span>
-       </div>
+      <div className="flex flex-col items-center gap-6">
+        <div className="relative w-32 h-32 mb-4">
+          <Image
+            src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
+            alt="Sneyder Studio Logo"
+            fill
+            className="object-contain animate-pulse"
+          />
+        </div>
+        <div className="w-16 h-1 bg-tertiary/20 rounded-full overflow-hidden relative">
+          <div className="absolute inset-0 bg-tertiary animate-loading-bar"></div>
+        </div>
+        <span className="text-tertiary font-bold tracking-[0.5em] uppercase text-[10px]">Cargando servicios de Sneyder Studio...</span>
+      </div>
     </div>
   );
 
@@ -79,14 +79,14 @@ export default function ServicesPage() {
       {/* Header */}
       <header className={`fixed top-0 w-full z-60 bg-[#0c1324] border-b border-slate-800 flex justify-between items-center px-6 h-16 shadow-[0px_2px_10px_rgba(0,0,0,0.5)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-80" : "pl-0"}`}>
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-cyan-400 hover:bg-slate-800 p-1 rounded-full transition-colors"
           >
             <span className="material-symbols-outlined">menu</span>
           </button>
           <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-            <Image 
+            <Image
               src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
               alt="Sneyder Studio"
               width={140}
@@ -95,18 +95,18 @@ export default function ServicesPage() {
             />
           </Link>
         </div>
-        
+
         {user ? (
           <div className="h-8 w-8 rounded-full overflow-hidden bg-surface-container border border-cyan-400/30">
-            <Image 
-              alt="User Avatar" 
+            <Image
+              alt="User Avatar"
               src={user.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuCO8RUk1wD7WV7O7IKZ_NBnLhlsnuVdHeC9x_CyLRsEpavDT9Qu9rC4-F4JAFIMwExYTNXtPsW04RAgXxe2vZ_1xgd0Wpqlz62JTPKFItouFbiVzuuvaA3Jr4zodwxrF3k5SScHvPKbmmQvNvCnMsjMY1m7yzSHBq-NVdD2N3qaTUfNHCwYii6gD_VVnTZrwbjzB-EmuUn_Y4QYasiBWkPdcLN2PPRgr4tyrGNvjDYnaz1WSLw73itY4B6zTZAWRKzhDVirP2Wyrcw"}
               width={32}
               height={32}
             />
           </div>
         ) : (
-          <Link 
+          <Link
             href="/"
             className="bg-tertiary/10 border border-tertiary/50 text-tertiary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-tertiary hover:text-on-tertiary transition-all"
           >
@@ -116,17 +116,16 @@ export default function ServicesPage() {
       </header>
 
       {/* Sidebar */}
-      <aside 
-        className={`fixed left-0 top-0 z-[70] h-[100dvh] w-80 bg-[#0c1324] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out font-headline text-slate-200 overflow-hidden ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        }`}
+      <aside
+        className={`fixed left-0 top-0 z-[70] h-[100dvh] w-80 bg-[#0c1324] border-r border-slate-800 flex flex-col transition-transform duration-300 ease-in-out font-headline text-slate-200 overflow-hidden ${isMenuOpen ? "translate-x-0" : "-translate-x-full"
+          }`}
       >
         <div className="p-8 flex flex-col gap-2">
           <div className="flex items-center gap-4 mb-6">
             <div className="w-12 h-12 rounded-full overflow-hidden flex items-center justify-center bg-slate-800">
               {user ? (
-                <Image 
-                  alt="User Profile Avatar" 
+                <Image
+                  alt="User Profile Avatar"
                   src={user.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"}
                   width={48}
                   height={48}
@@ -144,11 +143,11 @@ export default function ServicesPage() {
               </p>
             </div>
           </div>
-          <Link 
+          <Link
             href="/"
             className="relative w-full h-16 mb-8 cursor-pointer hover:scale-[1.02] transition-all bg-white/5 rounded-2xl border border-white/10 overflow-hidden p-3 shadow-xl group"
           >
-            <Image 
+            <Image
               src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
               alt="Sneyder Studio"
               fill
@@ -165,14 +164,14 @@ export default function ServicesPage() {
           <NavItem icon="bolt" label="Servicios" href="/servicios" active />
           <NavItem icon="psychology" label="Modelo de IA" href="/ia-models" />
           <NavItem icon="mail" label="Contacto" href="/contacto" />
-          
+
           <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Legal</div>
           <NavItem icon="policy" label="Política y condiciones" href="/contrato" small />
           <NavItem icon="gavel" label="Términos de servicio" href="/contrato" small />
           <NavItem icon="description" label="Contrato de servicios" href="/contrato" small />
-          
+
           {user && (
-            <button 
+            <button
               onClick={handleSignOut}
               className="flex items-center gap-4 px-4 py-3 text-red-400 hover:bg-red-500/10 transition-colors w-full text-left"
             >
@@ -185,7 +184,7 @@ export default function ServicesPage() {
 
       {/* Overlay */}
       {isMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/40 z-[65] backdrop-blur-sm transition-opacity duration-300"
           onClick={() => setIsMenuOpen(false)}
         />
@@ -228,16 +227,16 @@ export default function ServicesPage() {
 
             {/* Additional AI Service Card */}
             <div className="bg-surface-container-low p-8 rounded-2xl border border-white/5 hover:border-tertiary/30 transition-all group relative overflow-hidden lg:col-span-1">
-                <div className="absolute -right-8 -top-8 w-24 h-24 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-all"></div>
-                <span className="material-symbols-outlined text-purple-400 mb-6 text-5xl">smart_toy</span>
-                <h3 className="font-headline text-2xl font-bold text-white mb-4">IA para su Negocio</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-8">
-                  Integramos asistentes inteligentes adaptados a su modelo de preferencia, optimizando la interacción con sus clientes en tiempo real.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <span className="px-3 py-1 bg-white/5 text-purple-400 text-[10px] font-bold uppercase rounded-full border border-white/5">Asistente Local</span>
-                  <span className="px-3 py-1 bg-white/5 text-purple-400 text-[10px] font-bold uppercase rounded-full border border-white/5">Modelo a Medida</span>
-                </div>
+              <div className="absolute -right-8 -top-8 w-24 h-24 bg-purple-500/5 rounded-full blur-3xl group-hover:bg-purple-500/10 transition-all"></div>
+              <span className="material-symbols-outlined text-purple-400 mb-6 text-5xl">smart_toy</span>
+              <h3 className="font-headline text-2xl font-bold text-white mb-4">IA para su Negocio</h3>
+              <p className="text-slate-400 text-sm leading-relaxed mb-8">
+                Integramos asistentes inteligentes adaptados a su modelo de preferencia, optimizando la interacción con sus clientes en tiempo real.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-3 py-1 bg-white/5 text-purple-400 text-[10px] font-bold uppercase rounded-full border border-white/5">Asistente Local</span>
+                <span className="px-3 py-1 bg-white/5 text-purple-400 text-[10px] font-bold uppercase rounded-full border border-white/5">Modelo a Medida</span>
+              </div>
             </div>
           </div>
 
@@ -245,7 +244,7 @@ export default function ServicesPage() {
           <section className="mt-32">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
               <div className="relative aspect-square rounded-3xl overflow-hidden border border-white/5 flex items-center justify-center bg-white/5">
-                <Image 
+                <Image
                   src="https://i.postimg.cc/mDgqGyw3/Picsart-25-03-28-04-00-43-410.png"
                   alt="Sneyder Studio Logo"
                   fill
@@ -260,7 +259,7 @@ export default function ServicesPage() {
                     Ayudamos a las empresas a expandir su presencia desde su local físico hacia el vasto entorno digital para dominar su industria.
                   </p>
                 </div>
-                
+
                 <div className="space-y-6">
                   <div className="flex gap-4">
                     <div className="w-12 h-12 bg-cyan-400/10 rounded-xl flex items-center justify-center shrink-0 border border-cyan-400/20">
@@ -282,7 +281,7 @@ export default function ServicesPage() {
                   </div>
                 </div>
 
-                <Link 
+                <Link
                   href="/"
                   className="inline-flex items-center gap-2 bg-white text-black px-8 py-4 rounded-full font-bold uppercase tracking-widest text-xs hover:bg-cyan-400 transition-all shadow-xl"
                 >
@@ -310,13 +309,12 @@ export default function ServicesPage() {
 
 function NavItem({ icon, label, href, active = false, small = false, className = "" }: { icon: string; label: string; href: string; active?: boolean; small?: boolean; className?: string }) {
   return (
-    <Link 
-      href={href} 
-      className={`flex items-center gap-4 px-4 py-3 transition-colors ${
-        active 
-          ? "text-cyan-400 font-bold bg-slate-800/50" 
+    <Link
+      href={href}
+      className={`flex items-center gap-4 px-4 py-3 transition-colors ${active
+          ? "text-cyan-400 font-bold bg-slate-800/50"
           : "text-slate-400 hover:bg-slate-800 hover:text-white"
-      } ${small ? "text-sm" : ""} ${className}`}
+        } ${small ? "text-sm" : ""} ${className}`}
     >
       <span className={`material-symbols-outlined ${small ? "text-base" : ""}`}>{icon}</span>
       <span>{label}</span>

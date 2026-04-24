@@ -30,7 +30,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
         setUserProfile(null);
       }
     });
-    
+
     return () => unsubscribe();
   }, []);
 
@@ -41,8 +41,8 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
           <div className="flex items-center gap-4 mb-6 pt-2">
             <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center bg-slate-800 shrink-0">
               {user ? (
-                <Image 
-                  alt="Admin Avatar" 
+                <Image
+                  alt="Admin Avatar"
                   src={userProfile?.avatar_url || user?.photoURL || "https://lh3.googleusercontent.com/aida-public/AB6AXuBH_btGfHFWWHfApXWyzqu90p_2NBQZttyesQz6QlhsHASGNW17CG8J-xx8fF8jKJaPPfgtyTfolOPvAFnGM4gcX9ci9UmYI9bOziFWipLW0G_G3gtXXyBt4wq-ItmBSk5uKJraqJBEUPuv_ArRh18s3sVoJsjbr7ok9twnXcNobC6z0JiJlozlUbb6eL6KTjktk58yD7_vE1e63rOTk-xD7njqMy5SJaVxWwWikP2LOrMVuGfMcVTru4Wiih7wq_IOZ1WRsOIvKt0"}
                   width={40}
                   height={40}
@@ -60,11 +60,11 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
           </div>
           <div className="flex justify-between items-center mb-10">
 
-            <Link 
-              href="/" 
-              className="h-10 w-auto relative mr-4 bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg hover:scale-105 transition-all group"
+            <Link
+              href="/"
+              className="h-10 w-auto relative mr-4 cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group"
             >
-              <Image 
+              <Image
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
                 width={150}
@@ -83,6 +83,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
             <SidebarItem icon="visibility" label="Visitas" href="/admin/visitas" active={pathname === "/admin/visitas"} />
             <SidebarItem icon="group" label="Usuarios" href="/admin/users" active={pathname === "/admin/users"} />
             <SidebarItem icon="settings_suggest" label="Ajuste Admin" href="/admin/settings" active={pathname === "/admin/settings"} />
+            <SidebarItem icon="payments" label="Prueba de Pago" href="/admin/test-payment" active={pathname === "/admin/test-payment"} />
             <SidebarItem icon="shopping_cart" label="Mis pedidos" href="/mis-pedidos" active={pathname === "/mis-pedidos"} />
             <SidebarItem icon="build" label="Servicios" href="/servicios" active={pathname === "/servicios"} />
             <SidebarItem icon="psychology" label="Modelo de IA" href="/ia-models" active={pathname === "/ia-models"} />
@@ -98,7 +99,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
 
       {/* Overlay ONLY for mobile (sm) - Tablets (md) and up can see both */}
       {isMenuOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/40 z-[55] backdrop-blur-sm md:hidden"
           onClick={() => setIsMenuOpen(false)}
         />
@@ -109,13 +110,12 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
 
 function SidebarItem({ icon, label, href, active = false }: { icon: string; label: string; href: string; active?: boolean }) {
   return (
-    <Link 
+    <Link
       href={href}
-      className={`flex items-center gap-4 p-2 rounded cursor-pointer transition-all font-headline text-xs lg:text-sm uppercase tracking-widest ${
-        active 
-          ? "text-[#2fd9f4] border-l-2 border-[#2fd9f4] bg-tertiary/5 pl-4" 
+      className={`flex items-center gap-4 p-2 rounded cursor-pointer transition-all font-headline text-xs lg:text-sm uppercase tracking-widest ${active
+          ? "text-[#2fd9f4] border-l-2 border-[#2fd9f4] bg-tertiary/5 pl-4"
           : "text-slate-500 hover:text-[#89ceff] hover:bg-[#0c1324]/50"
-      }`}
+        }`}
     >
       <span className="material-symbols-outlined">{icon}</span>
       <span>{label}</span>
