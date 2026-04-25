@@ -140,15 +140,21 @@ export default function PaymentSelectionPage({ params }: { params: Promise<{ id:
               onClick={() => router.push(`/mis-pedidos/${id}/pagar/paypal?month=${month}`)}
               className="p-8 rounded-[2rem] border bg-white/5 border-white/10 hover:border-[#0070ba] hover:bg-[#0070ba]/5 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center gap-4 group relative overflow-hidden text-center"
             >
-              <div className="w-20 h-20 bg-[#0070ba]/10 rounded-full flex items-center justify-center border border-[#0070ba]/20 group-hover:scale-110 transition-transform shadow-[0_0_30px_rgba(0,112,186,0.2)]">
-                <span className="text-4xl font-bold text-[#0070ba] font-serif">P</span>
+              <div className="h-20 flex items-center justify-center group-hover:scale-110 transition-transform drop-shadow-[0_0_15px_rgba(0,112,186,0.5)]">
+                <Image 
+                  src="https://upload.wikimedia.org/wikipedia/commons/b/b5/PayPal.svg" 
+                  alt="PayPal Logo Oficial" 
+                  width={120} 
+                  height={50} 
+                  className="object-contain"
+                />
               </div>
               <div>
                 <h4 className="text-xl font-black text-white mb-1">PayPal</h4>
-                <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest">Tarjeta o Saldo</p>
+                <p className="text-[11px] font-bold text-[#0070ba] uppercase tracking-widest">Tarjeta y Saldo</p>
               </div>
-              <p className="text-xs text-slate-500 mt-2 px-4 leading-relaxed">
-                Paga de forma rápida y segura con tu cuenta PayPal o tarjeta de crédito.
+              <p className="text-xs text-slate-400 mt-2 px-2 leading-relaxed">
+                Pago directo a PayPal con <strong className="text-white">Tarjeta de Crédito o Débito</strong> rápido y seguro.
               </p>
             </button>
 
@@ -259,10 +265,9 @@ export default function PaymentSelectionPage({ params }: { params: Promise<{ id:
               <div className="mt-8 animate-in fade-in slide-in-from-bottom-4">
                 <form action="https://faucetpay.io/merchant/webscr" method="POST">
                   <input type="hidden" name="merchant_username" value={MERCHANT_ID} />
-                  <input type="hidden" name="item_name" value={`Pago Cuota ${month} - Proj ${id.slice(0, 5)}`} />
-                  <input type="hidden" name="amount1" value={amountUSD} />
-                  <input type="hidden" name="currency1" value="USD" />
-                  <input type="hidden" name="currency2" value={selectedCrypto} />
+                  <input type="hidden" name="item_description" value={`Pago Cuota ${month} - Proj ${id.slice(0, 5)}`} />
+                  <input type="hidden" name="amount1" value={selectedCrypto === 'USDT' ? equivalentUSDT : equivalentTRX} />
+                  <input type="hidden" name="currency1" value={selectedCrypto} />
                   <input type="hidden" name="custom" value={`${id}_${month}`} />
                   <input type="hidden" name="callback_url" value="https://sneyderstudio.com/api/webhooks/faucetpay" />
                   <input type="hidden" name="success_url" value={`https://sneyderstudio.com/mis-pedidos/${id}/pagar/crypto/success`} />
