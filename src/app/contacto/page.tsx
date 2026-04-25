@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
 import { getCMSData } from "@/lib/cms";
 import { getAdminSettings } from "@/lib/settings";
 
@@ -26,6 +26,14 @@ export default function ContactoPage() {
   const [estimatedBudget, setEstimatedBudget] = useState("");
   const [paymentDay, setPaymentDay] = useState(1);
   const [adminSettings, setAdminSettings] = useState<any>(null);
+  const [formFields, setFormFields] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    projectSubject: "Desarrollo Web / App",
+    projectDescription: "",
+    businessDescription: "",
+  });
 
   const calculateMonthlyPayment = () => {
     const budgetValue = parseFloat(estimatedBudget) || 0;
@@ -74,13 +82,51 @@ export default function ContactoPage() {
       return;
     }
     setFormStatus('sending');
-    setTimeout(() => {
+    try {
+      const budgetValue = parseFloat(estimatedBudget) || 0;
+      const orderData: any = {
+        user_id: user.uid,
+        status: "processing",
+        created_at: new Date().toISOString(),
+        total: budgetValue,
+        items: [{ name: formFields.projectSubject, price: budgetValue, description: formFields.projectDescription }],
+        current_step: 1,
+        // Proposal details
+        proposal: {
+          full_name: formFields.fullName || userProfile?.manager_name || user.displayName || "",
+          email: formFields.email || user.email || "",
+          phone: formFields.phone || userProfile?.whatsapp || "",
+          project_subject: formFields.projectSubject,
+          project_description: formFields.projectDescription,
+          business_description: formFields.businessDescription,
+          submitted_at: new Date().toISOString(),
+        },
+        // Payment info
+        payment_method: wantsCredit ? "credito" : "contado",
+        credit_info: wantsCredit ? {
+          wants_credit: true,
+          budget: budgetValue,
+          months: creditMonths,
+          monthly_payment: parseFloat(calculateMonthlyPayment() as string) || 0,
+          total_with_interest: budgetValue * 1.05,
+          interest_rate: 5,
+        } : null,
+      };
+      await addDoc(collection(db, 'orders'), orderData);
       setFormStatus('success');
       setShowModal(true);
-      setTimeout(() => {
-        setFormStatus('idle');
-      }, 5000);
-    }, 1500);
+      // Reset form
+      setFormFields({ fullName: "", email: "", phone: "", projectSubject: "Desarrollo Web / App", projectDescription: "", businessDescription: "" });
+      setEstimatedBudget("");
+      setWantsCredit(false);
+      setCreditMonths(6);
+      setTimeout(() => { setFormStatus('idle'); }, 5000);
+    } catch (err) {
+      console.error("Error submitting proposal:", err);
+      setFormStatus('error');
+      alert("Error al enviar la propuesta. Intente de nuevo.");
+      setTimeout(() => { setFormStatus('idle'); }, 3000);
+    }
   };
 
   if (!data) return (
@@ -183,30 +229,36 @@ export default function ContactoPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">Nombre Completo</label>
-                    <input required type="text" placeholder="Ej. Juan Pérez" className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl" />
+                    <input required type="text" placeholder="Ej. Juan Pérez" value={formFields.fullName} onChange={(e) => setFormFields(prev => ({...prev, fullName: e.target.value}))} className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">Correo Electrónico</label>
-                    <input required type="email" placeholder="correo@empresa.com" className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl" />
+                    <input required type="email" placeholder="correo@empresa.com" value={formFields.email} onChange={(e) => setFormFields(prev => ({...prev, email: e.target.value}))} className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl" />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">Asunto del Proyecto</label>
-                  <select className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl appearance-none">
-                    <option className="bg-[#0c1324]">Desarrollo Web / App</option>
-                    <option className="bg-[#0c1324]">Implementación de IA</option>
-                    <option className="bg-[#0c1324]">Consultoría Estratégica</option>
-                    <option className="bg-[#0c1324]">Otro</option>
-                  </select>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">Teléfono / WhatsApp</label>
+                    <input type="tel" placeholder="+506 0000 0000" value={formFields.phone} onChange={(e) => setFormFields(prev => ({...prev, phone: e.target.value}))} className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">Asunto del Proyecto</label>
+                    <select value={formFields.projectSubject} onChange={(e) => setFormFields(prev => ({...prev, projectSubject: e.target.value}))} className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl appearance-none">
+                      <option className="bg-[#0c1324]">Desarrollo Web / App</option>
+                      <option className="bg-[#0c1324]">Implementación de IA</option>
+                      <option className="bg-[#0c1324]">Consultoría Estratégica</option>
+                      <option className="bg-[#0c1324]">Otro</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">¿Qué desea que construyamos?</label>
-                    <textarea required rows={4} placeholder="Describa el software, app o sistema que tiene en mente..." className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl resize-none"></textarea>
+                    <textarea required rows={4} placeholder="Describa el software, app o sistema que tiene en mente..." value={formFields.projectDescription} onChange={(e) => setFormFields(prev => ({...prev, projectDescription: e.target.value}))} className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl resize-none"></textarea>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">Sobre su Empresa o Negocio</label>
-                    <textarea required rows={4} placeholder="Cuéntenos qué hace su empresa y cuáles son sus objetivos..." className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl resize-none"></textarea>
+                    <textarea required rows={4} placeholder="Cuéntenos qué hace su empresa y cuáles son sus objetivos..." value={formFields.businessDescription} onChange={(e) => setFormFields(prev => ({...prev, businessDescription: e.target.value}))} className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl resize-none"></textarea>
                   </div>
                 </div>
                 <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all duration-500">

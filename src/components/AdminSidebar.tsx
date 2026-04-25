@@ -81,6 +81,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
             <SidebarItem icon="person" label="Perfil de usuario" href="/admin/profile" active={pathname === "/admin/profile"} />
             <SidebarItem icon="admin_panel_settings" label="Administración" href="/admin" active={pathname === "/admin"} />
             <SidebarItem icon="visibility" label="Visitas" href="/admin/visitas" active={pathname === "/admin/visitas"} />
+            <SidebarItem icon="shopping_bag" label="Pedidos" href="/admin/pedidos" active={pathname === "/admin/pedidos"} />
             <SidebarItem icon="group" label="Usuarios" href="/admin/users" active={pathname === "/admin/users"} />
             <SidebarItem icon="settings_suggest" label="Ajuste Admin" href="/admin/settings" active={pathname === "/admin/settings"} />
             <SidebarItem icon="payments" label="Prueba de Pago" href="/admin/test-payment" active={pathname === "/admin/test-payment"} />

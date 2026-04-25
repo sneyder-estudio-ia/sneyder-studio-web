@@ -55,15 +55,15 @@ function RecursoAdquiridoContent() {
   }
 
   // Mock resources if order exists or if no order provided (for demo)
-  const resources = [
+  const baseResources = [
     {
       id: "src-code",
       name: "Código Fuente (Main Branch)",
-      type: "ZIP / GIT",
       size: "124 MB",
       icon: "code_blocks",
       status: order?.status === 'completed' ? "Disponible" : "Protegido",
-      desc: "Acceso total a la lógica de negocio y componentes de la interfaz."
+      desc: "Acceso total a la lógica de negocio y componentes de la interfaz.",
+      value: order?.source_code_link || "Pendiente de cargar"
     },
     {
       id: "admin-access",
@@ -100,7 +100,20 @@ function RecursoAdquiridoContent() {
       status: "Disponible",
       desc: "Certificación de propiedad y términos de mantenimiento."
     }
-  ].sort((a, b) => {
+  ];
+
+  const customMapped = (order?.custom_resources || []).map((cr: any) => ({
+    id: cr.id,
+    name: cr.title,
+    type: cr.value.startsWith("http") ? "Enlace Externo" : "Información Extra",
+    size: cr.isPrivate ? "Privado" : "Público",
+    icon: cr.value.startsWith("http") ? "link" : "key",
+    status: cr.isPrivate ? (order?.status === 'completed' ? "Disponible" : "Bloqueado") : "Disponible",
+    desc: "Recurso adicional aprovisionado por la administración.",
+    value: cr.isPrivate && order?.status !== 'completed' ? "Bloqueado (Requiere pago)" : cr.value
+  }));
+
+  const resources = [...baseResources, ...customMapped].sort((a, b) => {
     if (a.status === "Disponible" && b.status !== "Disponible") return -1;
     if (a.status !== "Disponible" && b.status === "Disponible") return 1;
     return 0;
@@ -198,8 +211,10 @@ function RecursoAdquiridoContent() {
                   onClick={() => {
                     if (order?.status !== 'completed') {
                       setShowBlockModal(true);
+                    } else if (order?.source_code_link) {
+                      window.open(order.source_code_link, '_blank');
                     } else {
-                      // Logic for actual download all
+                      alert("Los archivos fuente se subirán pronto. Contacta a soporte.");
                     }
                   }}
                   className="mt-8 w-full bg-cyan-400 text-black py-4 rounded-xl font-black uppercase text-[10px] tracking-widest hover:scale-105 active:scale-95 transition-all"
@@ -352,8 +367,14 @@ function RecursoAdquiridoContent() {
                     </div>
                   </div>
                 ) : (
-                  <div className="w-full bg-slate-900 rounded-2xl p-6 border border-white/5 relative group mb-8">
-                    <p className="text-cyan-400 font-mono text-lg break-all">{selectedRes.value}</p>
+                  <div className="w-full bg-slate-900 rounded-2xl p-6 border border-white/5 relative group mb-8 flex items-center justify-center">
+                    {selectedRes.type === "Enlace Externo" ? (
+                      <a href={selectedRes.value} target="_blank" rel="noopener noreferrer" className="text-cyan-400 font-mono text-center break-all underline hover:text-cyan-300">
+                        Abrir Enlace Externo
+                      </a>
+                    ) : (
+                      <p className="text-cyan-400 font-mono text-center break-all">{selectedRes.value}</p>
+                    )}
                     <button
                       onClick={() => copyToClipboard(selectedRes.value)}
                       className="absolute -right-2 -top-2 w-10 h-10 bg-cyan-400 text-black rounded-lg flex items-center justify-center hover:scale-110 active:scale-95 transition-all shadow-lg"

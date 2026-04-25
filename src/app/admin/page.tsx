@@ -18,6 +18,7 @@ export default function AdminPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [userCount, setUserCount] = useState<number | string>("...");
   const [weeklyVisits, setWeeklyVisits] = useState<number | string>("...");
+  const [totalRevenue, setTotalRevenue] = useState<number | string>("...");
   const router = useRouter();
 
   useEffect(() => {
@@ -59,6 +60,11 @@ export default function AdminPage() {
         const snapVisits = await getDocs(qVisits);
         const total = snapVisits.docs.reduce((acc: number, doc: any) => acc + (doc.data().count || 0), 0);
         setWeeklyVisits(total.toLocaleString());
+
+        // Fetch revenue
+        const snapOrders = await getDocs(collection(db, "orders"));
+        const revenue = snapOrders.docs.reduce((acc: number, doc: any) => acc + (doc.data().total || 0), 0);
+        setTotalRevenue(revenue.toLocaleString());
       } catch (err) {
         console.error("Error fetching counts:", err);
       }
@@ -145,7 +151,7 @@ export default function AdminPage() {
       {/* Main Canvas */}
       <main className={`pt-20 pb-28 px-4 md:px-6 max-w-7xl mx-auto space-y-6 md:space-y-8 w-full flex-grow transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
         {/* KPI Grid */}
-        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <Link href="/admin/users" className="block h-32">
             <StatCard icon="group" label="Usuarios Totales" value={userCount.toString()} trend="+12%" />
           </Link>
@@ -155,7 +161,12 @@ export default function AdminPage() {
           <Link href="/admin/visitas" className="block h-32">
             <StatCard icon="visibility" label="Visitas Semanales" value={weeklyVisits.toLocaleString() || "..."} trend="+24%" />
           </Link>
-          <StatCard icon="shopping_bag" label="Pedidos" value="892" trend="+8%" />
+          <Link href="/admin/pedidos" className="block h-32">
+            <StatCard icon="shopping_bag" label="Pedidos" value="892" trend="+8%" />
+          </Link>
+          <div className="block h-32">
+            <StatCard icon="payments" label="Ingresos" value={`$${totalRevenue}`} trend="+15%" />
+          </div>
         </section>
 
         {/* Dynamic Grid */}
