@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "paypal": {
+      "command": "node",
+      "args": ["d:/Documents/josepe/Desktop/Sneyder Studio/Sneyder Studio Web/paypal-mcp/index.js"],
+      "env": {
+        "PAYPAL_CLIENT_ID": "AYRp6FMZnmtwv6wCwMfx66DAHQMFRBDGvtE1xnE3zcCD8G-Z-dBFgjX0tSnW5KqHKyO5XxMY5PQAi3E2",
+        "PAYPAL_CLIENT_SECRET": "EFoDV3FQWdszqE3kB1vdt5MRWm2JLD36GrNxO0aGZy76PUUhDpHbIAppHEONsIvTU1OKGTYtw-lC67nf",
+        "PAYPAL_ENVIRONMENT": "live"
+      }
+    }
+  }
+}

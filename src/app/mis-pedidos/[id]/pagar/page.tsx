@@ -50,7 +50,7 @@ export default function PaymentPage({ params }: { params: Promise<{ id: string }
   }, [id, router, isLoading]);
 
   const handlePayment = (monthIndex: number) => {
-    router.push(`/mis-pedidos/${id}/pagar/paypal?month=${monthIndex}`);
+    router.push(`/mis-pedidos/${id}/pagar/crypto?month=${monthIndex}`);
   };
 
   if (isLoading) {

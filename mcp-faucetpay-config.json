@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "faucetpay": {
+      "command": "node",
+      "args": ["d:/Documents/josepe/Desktop/Sneyder Studio/Sneyder Studio Web/faucetpay-mcp/index.js"],
+      "env": {
+        "FAUCETPAY_MERCHANT_ID": "axel1994",
+        "FAUCETPAY_API_KEY": "42265bbdd23ccdb168f7e431011483685d2ffe1025a550adcf5f4b8d4c9d4668"
+      }
+    }
+  }
+}

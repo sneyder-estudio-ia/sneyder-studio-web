@@ -35,6 +35,14 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "i.postimg.cc",
       },
+      {
+        protocol: "https",
+        hostname: "cryptologos.cc",
+      },
+      {
+        protocol: "https",
+        hostname: "faucetpay.io",
+      },
     ],
   },
   experimental: {

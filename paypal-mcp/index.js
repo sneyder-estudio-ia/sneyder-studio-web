@@ -5,10 +5,11 @@ const {
   ListToolsRequestSchema,
 } = require("@modelcontextprotocol/sdk/types.js");
 
-// Credenciales proporcionadas por el usuario
-const CLIENT_ID = 'AYRp6FMZnmtwv6wCwMfx66DAHQMFRBDGvtE1xnE3zcCD8G-Z-dBFgjX0tSnW5KqHKyO5XxMY5PQAi3E2';
-const SECRET = 'EFoDV3FQWdszqE3kB1vdt5MRWm2JLD36GrNxO0aGZy76PUUhDpHbIAppHEONsIvTU1OKGTYtw-lC67nf';
-const PAYPAL_API = 'https://api-m.paypal.com';
+// Credenciales inyectadas via variables de entorno
+const CLIENT_ID = process.env.PAYPAL_CLIENT_ID || 'AYRp6FMZnmtwv6wCwMfx66DAHQMFRBDGvtE1xnE3zcCD8G-Z-dBFgjX0tSnW5KqHKyO5XxMY5PQAi3E2';
+const SECRET = process.env.PAYPAL_CLIENT_SECRET || 'EFoDV3FQWdszqE3kB1vdt5MRWm2JLD36GrNxO0aGZy76PUUhDpHbIAppHEONsIvTU1OKGTYtw-lC67nf';
+const ENVIRONMENT = process.env.PAYPAL_ENVIRONMENT || 'live';
+const PAYPAL_API = ENVIRONMENT === 'live' ? 'https://api-m.paypal.com' : 'https://api-m.sandbox.paypal.com';
 
 /**
  * Obtiene un token de acceso OAuth2 de PayPal
@@ -41,9 +42,52 @@ const server = new Server(
   {
     capabilities: {
       tools: {},
+      resources: {},
     },
   }
 );
+
+/**
+ * Recursos disponibles: lecturas de órdenes y pagos
+ */
+const { ListResourcesRequestSchema, ReadResourceRequestSchema } = require("@modelcontextprotocol/sdk/types.js");
+
+server.setRequestHandler(ListResourcesRequestSchema, async () => {
+  return {
+    resources: [
+      {
+        uri: "paypal://orders",
+        name: "Lista de Órdenes Recientes",
+        description: "Permite listar las últimas órdenes creadas en la cuenta",
+        mimeType: "application/json",
+      },
+      {
+        uri: "paypal://payments",
+        name: "Lista de Pagos Recientes",
+        description: "Permite listar los últimos pagos recibidos",
+        mimeType: "application/json",
+      }
+    ],
+  };
+});
+
+server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
+  const token = await getAccessToken();
+  const uri = request.params.uri;
+  
+  if (uri === "paypal://orders") {
+    // Aquí se podría implementar una lógica para listar órdenes reales de la API
+    return {
+      contents: [{
+        uri: uri,
+        mimeType: "application/json",
+        text: JSON.stringify({ message: "Utilice 'get_paypal_order' con un ID específico para ver detalles de una orden." }, null, 2),
+      }],
+    };
+  }
+
+  throw new Error(`Recurso no encontrado: ${uri}`);
+});
 
 /**
  * Definición de las herramientas disponibles
@@ -86,6 +130,28 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
             currency: { type: "string", description: "Código de moneda (ej: 'USD')" },
           },
           required: ["amount", "currency"],
+        },
+      },
+      {
+        name: "get_paypal_order",
+        description: "Obtiene los detalles de una orden de PayPal",
+        inputSchema: {
+          type: "object",
+          properties: {
+            order_id: { type: "string", description: "El ID de la orden de PayPal" },
+          },
+          required: ["order_id"],
+        },
+      },
+      {
+        name: "capture_paypal_order",
+        description: "Captura el pago de una orden aprobada de PayPal",
+        inputSchema: {
+          type: "object",
+          properties: {
+            order_id: { type: "string", description: "El ID de la orden de PayPal" },
+          },
+          required: ["order_id"],
         },
       }
     ],
@@ -146,6 +212,35 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
               }
             }]
           })
+        });
+        const data = await response.json();
+        return {
+          content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+        };
+      }
+
+      case "get_paypal_order": {
+        const { order_id } = request.params.arguments;
+        const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${order_id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const data = await response.json();
+        return {
+          content: [{ type: "text", text: JSON.stringify(data, null, 2) }],
+        };
+      }
+
+      case "capture_paypal_order": {
+        const { order_id } = request.params.arguments;
+        const response = await fetch(`${PAYPAL_API}/v2/checkout/orders/${order_id}/capture`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
         });
         const data = await response.json();
         return {
