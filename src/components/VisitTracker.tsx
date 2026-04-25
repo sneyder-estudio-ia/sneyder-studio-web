@@ -21,7 +21,9 @@ export default function VisitTracker() {
       const visitRef = doc(db, "stats", "visits", "daily", dateStr);
 
       try {
+        const totalRef = doc(db, "stats", "visits", "summary", "total");
         const snap = await getDoc(visitRef);
+        
         if (snap.exists()) {
           await updateDoc(visitRef, {
             count: increment(1)
@@ -33,16 +35,28 @@ export default function VisitTracker() {
             timestamp: now
           });
         }
+
+        // Also increment global counter
+        try {
+          const totalSnap = await getDoc(totalRef);
+          if (totalSnap.exists()) {
+            await updateDoc(totalRef, { count: increment(1) });
+          } else {
+            await setDoc(totalRef, { count: 1 });
+          }
+        } catch (totalErr) {
+          console.error("Error updating global counter:", totalErr);
+        }
       } catch (err) {
         console.error("Error tracking visit:", err);
       }
     };
 
-    // Usar sessionStorage para no contar refrecos en la misma sesión como visitas nuevas (opcional)
-    const hasVisited = sessionStorage.getItem("v_tracked");
-    if (!hasVisited) {
+    // Usar localStorage para identificar usuarios únicos (nuevos) de forma persistente
+    const hasVisitedBefore = localStorage.getItem("ss_unique_visitor");
+    if (!hasVisitedBefore) {
       trackVisit();
-      sessionStorage.setItem("v_tracked", "true");
+      localStorage.setItem("ss_unique_visitor", "true");
     }
   }, []);
 

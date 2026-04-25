@@ -18,6 +18,7 @@ export default function AdminPage() {
   const [isChecking, setIsChecking] = useState(true);
   const [userCount, setUserCount] = useState<number | string>("...");
   const [weeklyVisits, setWeeklyVisits] = useState<number | string>("...");
+  const [totalVisits, setTotalVisits] = useState<number | string>("...");
   const [totalRevenue, setTotalRevenue] = useState<number | string>("...");
   const [ordersCount, setOrdersCount] = useState<number | string>("...");
   const [hasNewOrders, setHasNewOrders] = useState(false);
@@ -53,15 +54,10 @@ export default function AdminPage() {
         const snapshot = await getCountFromServer(coll);
         setUserCount(snapshot.data().count.toLocaleString());
 
-        // Fetch weekly visits
-        const qVisits = query(
-          collection(db, "stats", "visits", "daily"),
-          orderBy("date", "desc"),
-          limit(7)
-        );
-        const snapVisits = await getDocs(qVisits);
-        const total = snapVisits.docs.reduce((acc: number, doc: any) => acc + (doc.data().count || 0), 0);
-        setWeeklyVisits(total.toLocaleString());
+        // Fetch total visits (all-time)
+        const snapAll = await getDocs(collection(db, "stats", "visits", "daily"));
+        const totalAll = snapAll.docs.reduce((acc: number, doc: any) => acc + (doc.data().count || 0), 0);
+        setTotalVisits(totalAll.toLocaleString());
 
         // Fetch revenue
         const snapOrders = await getDocs(collection(db, "orders"));
@@ -77,9 +73,22 @@ export default function AdminPage() {
   useEffect(() => {
     if (!user) return;
     
+    // real-time listener for weekly visits (7 days)
+    const qVisits = query(
+      collection(db, "stats", "visits", "daily"),
+      orderBy("date", "desc"),
+      limit(7)
+    );
+    const unsubVisits = onSnapshot(qVisits, (snapshot) => {
+      const total = snapshot.docs.reduce((acc: number, doc: any) => acc + (doc.data().count || 0), 0);
+      setWeeklyVisits(total.toLocaleString());
+    }, (err) => {
+      console.error("Error in visits real-time listener:", err);
+    });
+
     // real-time listener for orders count and new orders indicator
-    const q = collection(db, "orders");
-    const unsubscribe = onSnapshot(q, (snapshot) => {
+    const qOrders = collection(db, "orders");
+    const unsubOrders = onSnapshot(qOrders, (snapshot) => {
       setOrdersCount(snapshot.size.toLocaleString());
       const hasNew = snapshot.docs.some(doc => doc.data().status === "processing");
       setHasNewOrders(hasNew);
@@ -87,7 +96,10 @@ export default function AdminPage() {
       console.error("Error in orders real-time listener:", err);
     });
 
-    return () => unsubscribe();
+    return () => {
+      unsubVisits();
+      unsubOrders();
+    };
   }, [user]);
 
   const createSampleOrder = async () => {
@@ -177,7 +189,13 @@ export default function AdminPage() {
             <StatCard icon="settings_suggest" label="Ajuste Admin" value="General" trend="Config" isStable />
           </Link>
           <Link href="/admin/visitas" className="block h-32">
-            <StatCard icon="visibility" label="Visitas Semanales" value={weeklyVisits.toLocaleString() || "..."} trend="+24%" />
+            <StatCard 
+              icon="visibility" 
+              label="Visitas Semanales" 
+              value={weeklyVisits.toLocaleString() || "..."} 
+              subValue={`Total: ${totalVisits}`}
+              trend="+24%" 
+            />
           </Link>
           <Link href="/admin/pedidos" className="block h-32">
             <StatCard 
@@ -276,7 +294,7 @@ export default function AdminPage() {
     </div>
   );
 }
-function StatCard({ icon, label, value, trend, isStable = false, hasNotification = false }: { icon: string; label: string; value: string; trend: string; isStable?: boolean; hasNotification?: boolean }) {
+function StatCard({ icon, label, value, trend, subValue, isStable = false, hasNotification = false }: { icon: string; label: string; value: string; trend: string; subValue?: string; isStable?: boolean; hasNotification?: boolean }) {
   return (
     <div className="bg-surface-container-low p-5 rounded-lg border-t border-primary/20 shadow-sm flex flex-col justify-between h-32 transition-transform hover:scale-[1.02]">
       <div className="flex justify-between items-start">
@@ -289,8 +307,15 @@ function StatCard({ icon, label, value, trend, isStable = false, hasNotification
         <span className={`${isStable ? "text-slate-500" : "text-tertiary"} text-[10px] font-bold uppercase tracking-widest`}>{trend}</span>
       </div>
       <div>
-        <p className="text-on-surface-variant text-xs font-medium uppercase tracking-wider">{label}</p>
-        <p className="text-2xl font-headline font-bold text-on-surface">{value}</p>
+        <p className="text-on-surface-variant text-[10px] font-bold uppercase tracking-wider mb-1">{label}</p>
+        <div className="flex flex-col">
+          <p className="text-2xl font-headline font-bold text-on-surface leading-tight">{value}</p>
+          {subValue && (
+            <p className="text-[10px] text-tertiary font-bold uppercase tracking-widest mt-0.5 animate-pulse">
+              {subValue}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );
