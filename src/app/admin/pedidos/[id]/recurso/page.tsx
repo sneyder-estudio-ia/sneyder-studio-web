@@ -164,7 +164,7 @@ export default function AsignarRecursoPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         
         {/* Header */}
-        <div className="flex items-center gap-0">
+        <div className="flex items-center gap-3">
           <Link href={`/admin/pedidos/${orderId}`}>
             <button className="text-cyan-400 hover:bg-white/5 p-2 rounded-full transition-colors">
               <span className="material-symbols-outlined">arrow_back</span>

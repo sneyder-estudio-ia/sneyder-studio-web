@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, collection, getCountFromServer, query, orderBy, limit, getDocs, addDoc } from "firebase/firestore";
+import { doc, getDoc, collection, getCountFromServer, query, orderBy, limit, getDocs, addDoc, onSnapshot } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
@@ -19,6 +19,8 @@ export default function AdminPage() {
   const [userCount, setUserCount] = useState<number | string>("...");
   const [weeklyVisits, setWeeklyVisits] = useState<number | string>("...");
   const [totalRevenue, setTotalRevenue] = useState<number | string>("...");
+  const [ordersCount, setOrdersCount] = useState<number | string>("...");
+  const [hasNewOrders, setHasNewOrders] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -72,6 +74,22 @@ export default function AdminPage() {
     if (user) fetchCounts();
   }, [user]);
 
+  useEffect(() => {
+    if (!user) return;
+    
+    // real-time listener for orders count and new orders indicator
+    const q = collection(db, "orders");
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setOrdersCount(snapshot.size.toLocaleString());
+      const hasNew = snapshot.docs.some(doc => doc.data().status === "processing");
+      setHasNewOrders(hasNew);
+    }, (err) => {
+      console.error("Error in orders real-time listener:", err);
+    });
+
+    return () => unsubscribe();
+  }, [user]);
+
   const createSampleOrder = async () => {
     if (!user) return;
     try {
@@ -106,7 +124,7 @@ export default function AdminPage() {
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
-        <div className="flex items-center gap-3 md:gap-4 overflow-hidden">
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0"
@@ -114,7 +132,7 @@ export default function AdminPage() {
             <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <Link href="/" className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
               <Image
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
@@ -162,7 +180,13 @@ export default function AdminPage() {
             <StatCard icon="visibility" label="Visitas Semanales" value={weeklyVisits.toLocaleString() || "..."} trend="+24%" />
           </Link>
           <Link href="/admin/pedidos" className="block h-32">
-            <StatCard icon="shopping_bag" label="Pedidos" value="892" trend="+8%" />
+            <StatCard 
+              icon="shopping_bag" 
+              label="Pedidos" 
+              value={ordersCount.toString()} 
+              trend="Real" 
+              hasNotification={hasNewOrders}
+            />
           </Link>
           <div className="block h-32">
             <StatCard icon="payments" label="Ingresos" value={`$${totalRevenue}`} trend="+15%" />
@@ -252,11 +276,16 @@ export default function AdminPage() {
     </div>
   );
 }
-function StatCard({ icon, label, value, trend, isStable = false }: { icon: string; label: string; value: string; trend: string; isStable?: boolean }) {
+function StatCard({ icon, label, value, trend, isStable = false, hasNotification = false }: { icon: string; label: string; value: string; trend: string; isStable?: boolean; hasNotification?: boolean }) {
   return (
     <div className="bg-surface-container-low p-5 rounded-lg border-t border-primary/20 shadow-sm flex flex-col justify-between h-32 transition-transform hover:scale-[1.02]">
       <div className="flex justify-between items-start">
-        <span className="material-symbols-outlined text-tertiary">{icon}</span>
+        <div className="relative flex items-center justify-center">
+          <span className="material-symbols-outlined text-tertiary">{icon}</span>
+          {hasNotification && (
+            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-green-500 rounded-full border-2 border-surface-container-low animate-pulse shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+          )}
+        </div>
         <span className={`${isStable ? "text-slate-500" : "text-tertiary"} text-[10px] font-bold uppercase tracking-widest`}>{trend}</span>
       </div>
       <div>

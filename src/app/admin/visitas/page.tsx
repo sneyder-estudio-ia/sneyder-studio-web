@@ -156,7 +156,7 @@ export default function VisitasPage() {
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
-        <div className="flex items-center gap-0 overflow-hidden">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0"
@@ -164,7 +164,7 @@ export default function VisitasPage() {
             <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <div className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <div className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
               <Image 
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
@@ -179,7 +179,7 @@ export default function VisitasPage() {
             </h1>
           </div>
         </div>
-        <div className="flex items-center gap-0">
+        <div className="flex items-center gap-3">
           <button 
             onClick={generateMockData}
             className="hidden md:flex items-center gap-2 text-[10px] bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded border border-white/10 transition-all"

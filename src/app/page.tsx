@@ -285,8 +285,8 @@ export default function Home() {
   return (
     <div className="text-on-background selection:bg-tertiary/30 selection:text-tertiary min-h-screen bg-background relative overflow-x-hidden">
       {/* TopAppBar */}
-      <header className={`fixed top-0 w-full z-60 bg-[#0c1324] border-b border-slate-800 flex justify-between items-center px-6 h-16 shadow-[0px_2px_10px_rgba(0,0,0,0.5)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-80" : "pl-0"}`}>
-        <div className="flex items-center gap-0">
+      <header className={`fixed top-0 w-full z-60 bg-[#0c1324] border-b border-slate-800 flex justify-between items-center px-6 h-16 shadow-[0px_2px_10px_rgba(0,0,0,0.5)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
+        <div className="flex items-center gap-3">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-cyan-400 hover:bg-slate-800 p-1 rounded-full transition-colors"
@@ -294,7 +294,7 @@ export default function Home() {
             <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div
-            className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group"
+            className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group"
             onClick={() => { setViewerImage("https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"); setShowLogoViewer(true); }}
           >
             <Image

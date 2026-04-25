@@ -9,8 +9,21 @@ import AdminSidebar from "@/components/AdminSidebar";
 import Image from "next/image";
 import Link from "next/link";
 
-import { DEFAULT_SETTINGS } from "@/lib/settings";
-import { legalData } from "@/data/legalData";
+const DEFAULT_SETTINGS = {
+  contact_email: "contacto@sneyder.studio",
+  contact_phone: "+52 000 000 0000",
+  whatsapp: "wa.me/520000000000",
+  address: "Madrid, España",
+  business_hours: "Lunes a Viernes 9:00 AM - 6:00 PM",
+  facebook_url: "",
+  instagram_url: "",
+  linkedin_url: "",
+  github_url: "",
+  policies_content: "",
+  terms_content: "",
+  contract_content: "",
+  about_us_content: ""
+};
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
@@ -47,7 +60,6 @@ export default function AdminSettingsPage() {
           ...data
         });
       } else {
-        // Si no hay datos en Firestore, inicializar con DEFAULT_SETTINGS (que ya incluye legalData)
         setSettings(DEFAULT_SETTINGS);
       }
     } catch (err) {
@@ -55,8 +67,8 @@ export default function AdminSettingsPage() {
     }
   };
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSave = async (e?: React.FormEvent) => {
+    if (e && e.preventDefault) e.preventDefault();
     setIsSaving(true);
     try {
       await setDoc(doc(db, "settings", "admin"), settings);
@@ -86,7 +98,7 @@ export default function AdminSettingsPage() {
     <div className="bg-background text-on-background min-h-screen flex flex-col">
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
-        <div className="flex items-center gap-0">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 p-2 rounded transition-all"
@@ -94,12 +106,7 @@ export default function AdminSettingsPage() {
             <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2">
-            <Link href="/admin">
-              <button className="text-[#89ceff] p-1 hover:bg-slate-800/50 rounded transition-all">
-                <span className="material-symbols-outlined">arrow_back</span>
-              </button>
-            </Link>
-            <div className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <div className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
               <Image 
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
@@ -112,14 +119,12 @@ export default function AdminSettingsPage() {
             <h1 className="font-['Space_Grotesk'] tracking-tight text-lg font-bold text-[#89ceff] whitespace-nowrap uppercase">
               Ajuste
             </h1>
+            <Link href="/admin" className="ml-2">
+              <button className="text-[#89ceff] p-1 hover:bg-slate-800/50 rounded transition-all transform -scale-x-100">
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </Link>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/admin/profile" className="hidden sm:block">
-            <div className="w-10 h-10 rounded-full border border-[#45464d]/15 overflow-hidden transition-transform hover:scale-105 active:scale-95 bg-slate-800">
-               <span className="w-full h-full flex items-center justify-center text-slate-500 material-symbols-outlined">person</span>
-            </div>
-          </Link>
         </div>
       </header>
 
@@ -127,7 +132,7 @@ export default function AdminSettingsPage() {
       <AdminSidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
 
       {/* Content */}
-      <main className={`flex-1 pt-24 pb-20 px-4 md:px-12 transition-all duration-300 ${isMenuOpen ? "md:pl-72 lg:pl-80" : ""}`}>
+      <main className={`flex-1 pt-24 pb-20 px-4 md:px-12 transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
         <div className="max-w-4xl mx-auto">
           <div className="mb-10">
             <h2 className="text-3xl font-headline font-bold text-white mb-2">Configuración General</h2>
@@ -237,7 +242,7 @@ export default function AdminSettingsPage() {
                 <span className="w-4 h-px bg-tertiary/30"></span>
                 Redes Sociales
               </h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Facebook</label>
                   <input 
@@ -294,7 +299,7 @@ export default function AdminSettingsPage() {
               <div className="space-y-8">
                 {/* Política y Condiciones */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between font-headline">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                        <span className="material-symbols-outlined text-sm">description</span>
                        Política y Condiciones
@@ -313,7 +318,7 @@ export default function AdminSettingsPage() {
 
                 {/* Términos de Servicio */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between font-headline">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                        <span className="material-symbols-outlined text-sm">gavel</span>
                        Términos de Servicio
@@ -332,7 +337,7 @@ export default function AdminSettingsPage() {
 
                 {/* Contrato de Servicios */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between font-headline">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                        <span className="material-symbols-outlined text-sm">history_edu</span>
                        Contrato de Servicios
@@ -351,7 +356,7 @@ export default function AdminSettingsPage() {
 
                 {/* Acerca de Nosotros */}
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between font-headline">
                     <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 flex items-center gap-2">
                        <span className="material-symbols-outlined text-sm">info</span>
                        Acerca de Nosotros
@@ -413,7 +418,7 @@ export default function AdminSettingsPage() {
          <Link href="/admin" className="text-slate-500 hover:text-tertiary transition-colors">
             <span className="material-symbols-outlined">dashboard</span>
          </Link>
-         <button onClick={handleSave} className="bg-tertiary text-on-tertiary p-3 rounded-full shadow-lg shadow-tertiary/30">
+         <button onClick={() => handleSave()} className="bg-tertiary text-on-tertiary p-3 rounded-full shadow-lg shadow-tertiary/30">
             <span className="material-symbols-outlined">save</span>
          </button>
          <Link href="/admin/profile" className="text-slate-500 hover:text-tertiary transition-colors">

@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, query, where, doc, getDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, getDoc, deleteDoc } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
@@ -93,6 +93,17 @@ export default function CompletadosPage() {
     if (user) fetchCompleted();
   }, [user]);
 
+  const handleDelete = async (orderId: string) => {
+    if (!confirm("¿ESTÁS COMPLETAMENTE SEGURO? Esta acción eliminará el pedido COMPLETADO permanentemente del sistema.")) return;
+    try {
+      await deleteDoc(doc(db, "orders", orderId));
+      setOrders(prev => prev.filter(o => o.id !== orderId));
+    } catch (err) {
+      console.error("Error deleting completed order:", err);
+      alert("Error al eliminar el pedido.");
+    }
+  };
+
   if (isChecking) {
     return (
       <div className="bg-background text-on-background flex items-center justify-center min-h-screen">
@@ -117,12 +128,12 @@ export default function CompletadosPage() {
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
-        <div className="flex items-center gap-0 overflow-hidden">
+        <div className="flex items-center gap-3">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0">
             <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <Link href="/" className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
               <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio" width={150} height={32} className="h-full w-auto object-contain group-hover:brightness-110" />
             </Link>
             <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
@@ -264,6 +275,13 @@ export default function CompletadosPage() {
                         <span className="material-symbols-outlined text-sm">open_in_new</span>
                       </button>
                     </Link>
+                    <button
+                      onClick={() => handleDelete(order.id)}
+                      className="text-xs font-bold uppercase tracking-widest text-red-400/70 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 hover:border-red-500/30 px-5 py-2 rounded-lg transition-all flex items-center gap-2 w-full sm:w-auto justify-center"
+                    >
+                      <span className="material-symbols-outlined text-sm transition-transform group-hover:rotate-12">delete</span>
+                      Eliminar Registro
+                    </button>
                   </div>
                 </div>
               ))}

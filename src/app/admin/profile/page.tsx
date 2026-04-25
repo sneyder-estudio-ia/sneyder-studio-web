@@ -89,7 +89,7 @@ export default function ProfilePage() {
       
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
-        <div className="flex items-center gap-0">
+        <div className="flex items-center gap-3">
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 p-2 rounded transition-all"
@@ -97,12 +97,7 @@ export default function ProfilePage() {
             <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2">
-            <Link href="/admin">
-              <button className="text-[#89ceff] p-1 hover:bg-slate-800/50 rounded transition-all">
-                <span className="material-symbols-outlined">arrow_back</span>
-              </button>
-            </Link>
-            <div className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <div className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
               <Image 
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
@@ -115,6 +110,11 @@ export default function ProfilePage() {
             <h1 className="font-['Space_Grotesk'] tracking-tight text-lg font-bold text-[#89ceff] whitespace-nowrap uppercase">
               Perfil
             </h1>
+            <Link href="/admin" className="ml-2">
+              <button className="text-[#89ceff] p-1 hover:bg-slate-800/50 rounded transition-all transform -scale-x-100">
+                <span className="material-symbols-outlined">arrow_forward</span>
+              </button>
+            </Link>
           </div>
         </div>
       </header>
