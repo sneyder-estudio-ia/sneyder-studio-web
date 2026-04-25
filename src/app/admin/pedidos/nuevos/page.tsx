@@ -132,23 +132,23 @@ export default function NuevosPedidosPage() {
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-0 overflow-hidden">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0">
-            <span className="material-symbols-outlined">menu</span>
+            <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+              <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio" width={150} height={32} className="h-full w-auto object-contain group-hover:brightness-110" />
+            </Link>
+            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
             <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-cyan-400 whitespace-nowrap uppercase">
               Nuevos Pedidos
             </h1>
-            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
-            <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-              <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio" width={150} height={32} className="h-full w-auto object-contain group-hover:brightness-110" />
-            </Link>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <Link href="/admin/pedidos" className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-tertiary hover:underline">
-            ← Gestión de Pedidos
+            Gestión de Pedidos →
           </Link>
         </div>
       </header>
@@ -338,7 +338,7 @@ export default function NuevosPedidosPage() {
 
                   {/* Action Buttons */}
                   <div className="border-t border-outline-variant/10 p-5 md:p-6 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-0">
                       <button
                         onClick={() => handleApprove(order.id)}
                         className="flex items-center gap-2 bg-green-500/10 text-green-400 border border-green-500/20 px-5 py-2.5 rounded-lg text-xs font-bold uppercase tracking-widest hover:bg-green-500/20 transition-all"

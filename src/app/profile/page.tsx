@@ -106,7 +106,7 @@ export default function ClientProfilePage() {
     <div className="bg-[#0a0e1a] text-white min-h-screen selection:bg-cyan-400/30">
       {/* Header */}
       <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-5 h-16">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-0">
           <Link href="/">
             <button className="text-cyan-400 hover:scale-110 transition-transform p-1 rounded-full hover:bg-white/5">
               <span className="material-symbols-outlined">arrow_back</span>

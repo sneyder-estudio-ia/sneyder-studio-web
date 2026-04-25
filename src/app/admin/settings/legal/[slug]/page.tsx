@@ -75,9 +75,9 @@ export default function LegalEditorPage() {
   return (
     <div className="bg-background text-on-background min-h-screen flex flex-col">
        <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/85 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 border-b border-white/5 transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-0">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#2fd9f4] p-2 hover:bg-white/5 rounded-lg transition-all">
-            <span className="material-symbols-outlined">menu</span>
+            <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2">
             <Link href="/admin/settings">

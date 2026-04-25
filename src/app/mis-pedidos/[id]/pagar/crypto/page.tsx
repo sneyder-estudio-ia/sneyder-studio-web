@@ -86,7 +86,7 @@ export default function PaymentSelectionPage({ params }: { params: Promise<{ id:
     <div className="bg-[#0a0e1a] text-white min-h-screen pb-20 selection:bg-cyan-400/20">
       {/* Premium Header */}
       <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center px-6 h-20 justify-between">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-0">
           <Link href={`/mis-pedidos/${id}/pagar`}>
             <button className="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 border border-white/10 text-cyan-400 hover:bg-cyan-400 hover:text-black transition-all">
               <span className="material-symbols-outlined">arrow_back</span>

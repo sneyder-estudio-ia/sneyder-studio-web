@@ -91,7 +91,7 @@ export default function UserDetailsPage({ params }: PageProps) {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0"
           >
-            <span className="material-symbols-outlined">menu</span>
+            <span className="material-symbols-outlined">more_vert</span>
           </button>
           <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] truncate">
             Detalles de Usuario - Sneyder Studio

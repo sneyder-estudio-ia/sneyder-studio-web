@@ -111,14 +111,10 @@ export default function AdminPage() {
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0"
           >
-            <span className="material-symbols-outlined">menu</span>
+            <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap">
-              Administración
-            </h1>
-            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
-            <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+            <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
               <Image
                 src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
                 alt="Sneyder Studio"
@@ -127,6 +123,10 @@ export default function AdminPage() {
                 className="h-full w-auto object-contain group-hover:brightness-110"
               />
             </Link>
+            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
+            <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap">
+              Administración
+            </h1>
           </div>
         </div>
         <div className="flex items-center shrink-0">

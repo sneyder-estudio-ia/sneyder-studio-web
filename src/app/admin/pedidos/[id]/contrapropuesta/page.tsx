@@ -196,7 +196,7 @@ export default function ContrapropuestaPage() {
           </div>
           <h2 className="text-xl font-bold">Pedido no encontrado</h2>
           <Link href="/admin/pedidos/nuevos" className="text-xs font-bold uppercase tracking-widest text-tertiary hover:underline">
-            ← Volver a Nuevos Pedidos
+            Volver a Nuevos Pedidos →
           </Link>
         </div>
       </div>
@@ -211,23 +211,23 @@ export default function ContrapropuestaPage() {
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
       {/* TopAppBar */}
       <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div className="flex items-center gap-0 overflow-hidden">
           <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0">
-            <span className="material-symbols-outlined">menu</span>
+            <span className="material-symbols-outlined">more_vert</span>
           </button>
           <div className="flex items-center gap-2 md:gap-4 shrink-0">
+            <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
+              <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio" width={150} height={32} className="h-full w-auto object-contain group-hover:brightness-110" />
+            </Link>
+            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
             <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-orange-400 whitespace-nowrap uppercase">
               Contrapropuesta
             </h1>
-            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
-            <Link href="/" className="h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-              <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio" width={150} height={32} className="h-full w-auto object-contain group-hover:brightness-110" />
-            </Link>
           </div>
         </div>
         <div className="flex items-center gap-4">
           <Link href={`/admin/pedidos/${orderId}`} className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-tertiary hover:underline">
-            ← Detalle del Pedido
+            Detalle del Pedido →
           </Link>
         </div>
       </header>
@@ -245,7 +245,7 @@ export default function ContrapropuestaPage() {
               <p className="text-sm text-slate-400 mt-1">La contrapropuesta ha sido enviada al cliente. Podrá verla en su panel de pedidos y decidir si aceptarla.</p>
               <div className="flex flex-wrap items-center gap-4 mt-3">
                 <Link href={`/admin/pedidos/${orderId}`} className="text-xs font-bold uppercase tracking-widest text-tertiary hover:underline">
-                  ← Volver al Detalle del Pedido
+                  Volver al Detalle del Pedido →
                 </Link>
                 {order?.counter_proposal?.status !== "accepted" && (
                   <button
