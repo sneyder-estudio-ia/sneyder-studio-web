@@ -485,13 +485,13 @@ export default function Home() {
             );
 
             return (
-              <div key={sectionId} className={`max-w-7xl mx-auto px-6 ${sectionId === 'services' ? 'mt-12' : 'mt-32'}`}>
+              <div key={sectionId} className={`max-w-7xl mx-auto px-3 sm:px-6 ${sectionId === 'services' ? 'mt-12' : 'mt-32'}`}>
                 {sectionId === 'services' && (
                   /* Bento Grid - Core Competencies */
                   <section>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                       {/* Desarrollo Multiplataforma */}
-                      <div className="md:col-span-2 bg-surface-container-low p-8 md:p-12 rounded-sm inner-glow-top relative group overflow-hidden border border-white/5 shadow-2xl">
+                      <div className="md:col-span-2 bg-surface-container-low p-4 sm:p-8 md:p-12 rounded-sm inner-glow-top relative group overflow-hidden border border-white/5 shadow-2xl">
                         {/* Background Flutter Watermark */}
                         <div className="absolute top-0 right-0 w-64 h-64 opacity-[0.03] -mr-20 -mt-20 group-hover:opacity-[0.07] transition-opacity duration-1000 rotate-12">
                           <Image src="/images/flutter_logo.png" alt="" fill className="object-contain" />
@@ -572,7 +572,7 @@ export default function Home() {
                       </div>
 
                       {/* Expansión de Negocios */}
-                      <div className="bg-surface-container-high p-8 md:p-12 rounded-sm inner-glow-top border border-white/5 relative group/expansion overflow-hidden flex flex-col h-full">
+                      <div className="bg-surface-container-high p-4 sm:p-8 md:p-12 rounded-sm inner-glow-top border border-white/5 relative group/expansion overflow-hidden flex flex-col h-full">
                         {/* Dynamic background effect */}
                         <div className="absolute inset-0 bg-gradient-to-br from-tertiary/5 via-transparent to-transparent opacity-0 group-hover/expansion:opacity-100 transition-opacity duration-1000"></div>
 
@@ -655,7 +655,7 @@ export default function Home() {
                 {sectionId === 'ai' && (
                   /* AI Orchestration */
                   <section className="flex flex-col gap-6">
-                    <div className="bg-surface-container-high p-8 md:p-12 rounded-sm inner-glow-top border border-white/5 relative group/ai overflow-hidden">
+                    <div className="bg-surface-container-high p-4 sm:p-8 md:p-12 rounded-sm inner-glow-top border border-white/5 relative group/ai overflow-hidden">
                       <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 via-transparent to-transparent opacity-0 group-hover/ai:opacity-100 transition-opacity duration-1000"></div>
 
                       <div className="relative z-10 flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
@@ -753,7 +753,7 @@ export default function Home() {
                       </div>
 
                       {/* AI CTA Footer */}
-                      <div className="mt-12 p-8 md:p-10 bg-gradient-to-r from-purple-500/20 via-surface-container to-transparent rounded-2xl border border-purple-500/20 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group/footer cursor-pointer hover:border-purple-500/40 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+                      <div className="mt-12 p-4 sm:p-8 md:p-10 bg-gradient-to-r from-purple-500/20 via-surface-container to-transparent rounded-2xl border border-purple-500/20 flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden group/footer cursor-pointer hover:border-purple-500/40 transition-colors shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
                         <div className="absolute -right-20 -top-20 w-64 h-64 bg-purple-500/10 rounded-full blur-[80px] group-hover/footer:bg-purple-500/30 transition-colors duration-1000"></div>
                         <div className="relative z-10 flex-grow max-w-3xl">
                           <h4 className="font-headline text-2xl md:text-3xl font-black text-white mb-3 tracking-tight">{data.aiModels.footer.title}</h4>
@@ -811,7 +811,7 @@ export default function Home() {
 
                 {sectionId === 'cta' && (
                   /* Elegant CTA Section */
-                  <section className="bg-surface-container-low p-12 md:p-24 rounded-3xl text-center border border-white/10 relative overflow-hidden group shadow-2xl mt-32 mb-20 mx-4 md:mx-0">
+                  <section className="bg-surface-container-low p-6 sm:p-12 md:p-24 rounded-3xl text-center border border-white/10 relative overflow-hidden group shadow-2xl mt-32 mb-20 mx-2 sm:mx-4 md:mx-0">
                     {/* Decorative elements */}
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-tertiary/10 rounded-full blur-[100px] group-hover:bg-tertiary/20 transition-all duration-1000"></div>
                     <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-purple-500/10 rounded-full blur-[100px] group-hover:bg-purple-500/20 transition-all duration-1000"></div>
