@@ -65,20 +65,40 @@ export default function ChatBot() {
         }),
       });
 
-      const data = await response.json();
-
-      if (data.error) {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: "Lo siento, ocurrió un error. Intenta de nuevo." },
-        ]);
-      } else {
-        setMessages((prev) => [
-          ...prev,
-          { role: "assistant", content: data.message },
-        ]);
+      if (!response.ok) {
+        throw new Error("API response not ok");
       }
-    } catch {
+
+      // Preparar mensaje del asistente vacío para ir llenándolo
+      const assistantMessage: Message = { role: "assistant", content: "" };
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      const reader = response.body?.getReader();
+      const decoder = new TextDecoder();
+      let assistantContent = "";
+
+      if (reader) {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          const chunk = decoder.decode(value, { stream: true });
+          assistantContent += chunk;
+
+          // Actualizar el último mensaje (el del asistente)
+          setMessages((prev) => {
+            const newMessages = [...prev];
+            newMessages[newMessages.length - 1] = {
+              ...assistantMessage,
+              content: assistantContent,
+            };
+            return newMessages;
+          });
+        }
+      }
+
+    } catch (error) {
+      console.error("Chat error:", error);
       setMessages((prev) => [
         ...prev,
         { role: "assistant", content: "Error de conexión. Verifica tu internet e intenta de nuevo." },
