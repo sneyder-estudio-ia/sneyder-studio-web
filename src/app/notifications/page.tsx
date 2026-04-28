@@ -233,15 +233,23 @@ export default function NotificationsPage() {
                   
                   <div className="flex items-start gap-4 relative z-10">
                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 border transition-all ${
+                      notif.type === 'welcome' ? 'bg-amber-500/10 border-amber-500/20 text-amber-400 shadow-[0_0_15px_rgba(251,191,36,0.1)]' :
+                      notif.type === 'payment' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' :
+                      notif.type === 'security' ? 'bg-red-500/10 border-red-500/20 text-red-400' :
+                      notif.type === 'status' ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400' :
+                      notif.type === 'billing' ? 'bg-orange-500/10 border-orange-500/20 text-orange-400' :
                       notif.type === 'info' ? 'bg-blue-500/10 border-blue-500/20 text-blue-400' :
                       notif.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' :
-                      notif.type === 'update' ? 'bg-purple-500/10 border-purple-500/20 text-purple-400' :
                       'bg-slate-500/10 border-slate-500/20 text-slate-400'
                     }`}>
                       <span className="material-symbols-outlined">{
+                        notif.type === 'welcome' ? 'celebration' :
+                        notif.type === 'payment' ? 'paid' :
+                        notif.type === 'security' ? 'security' :
+                        notif.type === 'status' ? 'rocket_launch' :
+                        notif.type === 'billing' ? 'receipt_long' :
                         notif.type === 'info' ? 'info' :
                         notif.type === 'success' ? 'check_circle' :
-                        notif.type === 'update' ? 'upgrade' :
                         'notifications'
                       }</span>
                     </div>

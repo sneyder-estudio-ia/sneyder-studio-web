@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter, useParams } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, collection, addDoc } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
@@ -118,12 +118,66 @@ export default function AdminOrderDetailPage() {
     setActionLoading(newStatus);
     try {
       await updateDoc(doc(db, "orders", order.id), { status: newStatus });
+      
+      // Notificación de estado
+      let title = "Actualización de Pedido";
+      let message = `Tu pedido #${order.id.slice(0, 8)} ha cambiado su estado a ${newStatus}.`;
+      
+      if (newStatus === "pending") {
+        title = "¡Proyecto en Producción!";
+        message = `¡Buenas noticias! Tu proyecto #${order.id.slice(0, 8)} ha sido aprobado y ha entrado en fase de producción.`;
+      } else if (newStatus === "completed") {
+        title = "¡Proyecto Finalizado!";
+        message = `Tu proyecto #${order.id.slice(0, 8)} ha sido completado con éxito. Ya puedes acceder a los entregables en la sección de recursos.`;
+      }
+
+      await addDoc(collection(db, "notifications"), {
+        userId: order.user_id,
+        title,
+        message,
+        type: "status",
+        isRead: false,
+        createdAt: new Date()
+      });
+
+      // Si pasa a producción, enviar recordatorio de factura (ejemplo)
+      if (newStatus === "pending") {
+        await addDoc(collection(db, "notifications"), {
+          userId: order.user_id,
+          title: "Recordatorio de Pago",
+          message: `Tu proyecto #${order.id.slice(0, 8)} está listo para la facturación. Puedes revisar los detalles en tu panel de pedidos.`,
+          type: "billing",
+          isRead: false,
+          createdAt: new Date()
+        });
+      }
+
       setOrder(prev => prev ? { ...prev, status: newStatus } : null);
     } catch (err) {
       console.error("Error updating order:", err);
       alert("Error al actualizar el pedido.");
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleStepChange = async (newStep: number) => {
+    if (!order) return;
+    try {
+      await updateDoc(doc(db, "orders", order.id), { current_step: newStep });
+      
+      await addDoc(collection(db, "notifications"), {
+        userId: order.user_id,
+        title: "Avance de Fase",
+        message: `Tu proyecto #${order.id.slice(0, 8)} ha avanzado a la Fase ${newStep}. Estamos trabajando para completar el desarrollo.`,
+        type: "status",
+        isRead: false,
+        createdAt: new Date()
+      });
+
+      setOrder(prev => prev ? { ...prev, current_step: newStep } : null);
+    } catch (err) {
+      console.error("Error updating step:", err);
     }
   };
 
@@ -244,10 +298,23 @@ export default function AdminOrderDetailPage() {
                 )}
               </div>
             </div>
-            <div className="flex flex-col items-start md:items-end justify-center gap-1 shrink-0">
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Capital Asignado</p>
-              <p className="text-3xl md:text-4xl font-bold text-white font-headline">${order.total?.toLocaleString() || "0"}</p>
-              <p className="text-[10px] text-slate-500 uppercase tracking-widest">USD</p>
+            <div className="flex flex-col items-start md:items-end justify-center gap-3 shrink-0">
+              <div className="flex bg-white/5 p-1 rounded-lg border border-white/10 shrink-0">
+                {[1, 2, 3].map((step) => (
+                  <button
+                    key={step}
+                    onClick={() => handleStepChange(step)}
+                    className={`w-8 h-8 rounded text-[10px] font-bold transition-all ${order.current_step === step ? "bg-cyan-400 text-black shadow-lg shadow-cyan-400/20" : "text-slate-500 hover:text-white"}`}
+                  >
+                    {step}
+                  </button>
+                ))}
+              </div>
+              <div className="text-right">
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Capital Asignado</p>
+                <p className="text-3xl md:text-4xl font-bold text-white font-headline">${order.total?.toLocaleString() || "0"}</p>
+                <p className="text-[10px] text-slate-500 uppercase tracking-widest">USD</p>
+              </div>
             </div>
           </div>
         </section>

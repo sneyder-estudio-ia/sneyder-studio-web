@@ -6,7 +6,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
 
 export default function ClientProfilePage() {
   const [user, setUser] = useState<any>(null);
@@ -65,6 +65,10 @@ export default function ClientProfilePage() {
     setSaveMessage(null);
 
     try {
+      // Check if profile is being completed for the first time
+      const profileDoc = await getDoc(doc(db, 'profiles', user.uid));
+      const isFirstTime = !profileDoc.exists() || !profileDoc.data()?.manager_name;
+
       await setDoc(doc(db, 'profiles', user.uid), {
         id: user.uid,
         manager_name: formData.manager_name,
@@ -73,6 +77,17 @@ export default function ClientProfilePage() {
         email: user.email,
         updated_at: new Date().toISOString()
       }, { merge: true });
+
+      if (isFirstTime && formData.manager_name) {
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "¡Perfil Completado!",
+          message: "Gracias por completar tu perfil. Ahora tienes acceso total a nuestro ecosistema de IA. Explora tus pedidos o inicia un nuevo proyecto.",
+          type: "welcome",
+          isRead: false,
+          createdAt: new Date()
+        });
+      }
 
       setSaveMessage("Perfil actualizado correctamente");
       setIsEditing(false);

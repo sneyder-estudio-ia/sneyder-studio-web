@@ -14,7 +14,13 @@ import {
   sendPasswordResetEmail,
   signOut
 } from "firebase/auth";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import { 
+  doc, 
+  getDoc, 
+  setDoc, 
+  collection, 
+  addDoc 
+} from "firebase/firestore";
 import { getCMSData } from "@/lib/cms";
 import { getAdminSettings } from "@/lib/settings";
 import { siteData } from "@/data/siteData";
@@ -1054,6 +1060,16 @@ function AuthModal({ isOpen, onClose, initialView, setView, setShowVerificationT
           created_at: new Date().toISOString()
         });
 
+        // Bienvenida Post-Registro Notification
+        await addDoc(collection(db, "notifications"), {
+          userId: user.uid,
+          title: "¡Bienvenida a Sneyder Studio!",
+          message: `Hola ${formData.managerName}, gracias por registrarte. Completa tu perfil para recibir un recorrido inicial por todas nuestras herramientas de IA.`,
+          type: "welcome",
+          isRead: false,
+          createdAt: new Date()
+        });
+
         // setShowVerificationToast(true);
         onClose();
       } else {
@@ -1069,6 +1085,16 @@ function AuthModal({ isOpen, onClose, initialView, setView, setShowVerificationT
         */
 
         onClose();
+        
+        // Alerta de Inicio de Sesión
+        await addDoc(collection(db, "notifications"), {
+          userId: userCredential.user.uid,
+          title: "Inicio de sesión detectado",
+          message: "Se ha detectado un nuevo inicio de sesión en tu cuenta. Si no fuiste tú, por favor contacta a soporte inmediatamente.",
+          type: "security",
+          isRead: false,
+          createdAt: new Date()
+        });
       }
     } catch (err: any) {
       console.error("Auth error:", err.code, err.message);

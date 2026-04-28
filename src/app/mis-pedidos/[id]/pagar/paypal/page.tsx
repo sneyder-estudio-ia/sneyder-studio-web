@@ -5,7 +5,7 @@ import { useState, useEffect, use } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { doc, getDoc, updateDoc, arrayUnion, setDoc } from "firebase/firestore";
+import { doc, getDoc, updateDoc, arrayUnion, setDoc, addDoc, collection } from "firebase/firestore";
 import { PayPalScriptProvider, PayPalButtons } from "@paypal/react-paypal-js";
 
 type PaymentView = 'selection' | 'processing' | 'success' | 'error';
@@ -73,6 +73,16 @@ export default function PayPalPage({ params }: { params: Promise<{ id: string }>
         month_paid: month,
         paypal_details: details,
         created_at: new Date().toISOString()
+      });
+
+      // Notificación de Pago Realizado
+      await addDoc(collection(db, "notifications"), {
+        userId: auth.currentUser?.uid,
+        title: "¡Pago Confirmado!",
+        message: `Tu pago de $${details.purchase_units[0].amount.value} USD para el proyecto #${id.slice(0, 8)} ha sido procesado con éxito. Gracias por tu confianza.`,
+        type: "payment",
+        isRead: false,
+        createdAt: new Date()
       });
 
       setView('success');
