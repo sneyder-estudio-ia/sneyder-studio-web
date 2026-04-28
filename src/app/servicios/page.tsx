@@ -157,8 +157,8 @@ export default function ServicesPage() {
           <NavItem icon="mail" label="Crea pedido" href="/contacto" />
 
           <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Legal</div>
-          <NavItem icon="policy" label="Política y condiciones" href="/contrato" small />
-          <NavItem icon="gavel" label="Términos de servicio" href="/contrato" small />
+          <NavItem icon="policy" label="Política y condiciones" href="/politicas" small />
+          <NavItem icon="gavel" label="Términos de servicio" href="/terminos" small />
           <NavItem icon="description" label="Contrato de servicios" href="/contrato" small />
 
           {user && (
