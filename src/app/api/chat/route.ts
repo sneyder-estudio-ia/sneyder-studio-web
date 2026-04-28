@@ -1,77 +1,86 @@
 import { NextRequest, NextResponse } from "next/server";
 import { siteData } from "@/data/siteData";
 import { legalData } from "@/data/legalData";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import { adminFirestore } from "@/lib/firebase-admin";
 
 const GROQ_API_KEY = process.env.GROQ_API_KEY;
 const GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions";
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
-export const runtime = "edge";
+// Cambiamos a nodejs para permitir el uso de firebase-admin y persistencia centralizada
+export const runtime = "nodejs";
 
 /**
- * Obtiene el contexto completo de la plataforma desde Firestore vía REST y datos locales.
- * Optimizado para Vercel Edge Runtime.
+ * Obtiene el contexto completo de la plataforma.
  */
 async function getFullPlatformContext(userId?: string): Promise<string> {
   let contextParts: string[] = [];
 
-  // ── 1. Contenido del sitio (siteData) ──
   contextParts.push(`=== CONTENIDO DEL SITIO WEB ===`);
   contextParts.push(`Hero: ${siteData.hero.title} - ${siteData.hero.description}`);
 
-  // Servicios
   contextParts.push(`\n--- SERVICIOS QUE OFRECE SNEYDER STUDIO ---`);
   siteData.services.forEach((s: any) => {
     contextParts.push(`Servicio: ${s.title}`);
     contextParts.push(`Descripción: ${s.description}`);
   });
 
-  // ── 2. Información Legal ──
   contextParts.push(`\n=== INFORMACIÓN LEGAL ===`);
   contextParts.push(`Políticas: ${legalData.politicas.content.trim().substring(0, 300)}`);
   contextParts.push(`Términos: ${legalData.terminos.content.trim().substring(0, 300)}`);
 
-  // ── 3. Datos de Firestore (Vía REST API para Edge compatibility) ──
-  try {
-    const projectId = process.env.FIREBASE_PROJECT_ID || "sneyder-studio";
-    const baseUrl = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents`;
-
-    // Función auxiliar para fetch REST (sin auth para simplificar, o con API Key)
-    const fetchDoc = async (path: string) => {
-      const resp = await fetch(`${baseUrl}/${path}?key=${process.env.NEXT_PUBLIC_FIREBASE_API_KEY}`);
-      if (!resp.ok) return null;
-      const data = await resp.json();
-      // Mapeo simple de campos Firestore REST a objeto plano
-      const fields = data.fields || {};
-      const obj: any = {};
-      for (const [k, v] of Object.entries(fields)) {
-         const val: any = v;
-         obj[k] = val.stringValue || val.integerValue || val.booleanValue || val.doubleValue || val.mapValue || null;
-      }
-      return obj;
-    };
-
-    // Configuración admin
-    try {
-      const settings = await fetchDoc("settings/admin");
-      if (settings) {
-        contextParts.push(`\n=== CONFIGURACIÓN ACTUALIZADA ===`);
-        if (settings.contact_email) contextParts.push(`Email: ${settings.contact_email}`);
-      }
-    } catch (e) {}
-
-    // Si hay userId, intentamos perfil (Si las reglas lo permiten o vía Proxy)
-    if (userId) {
-       contextParts.push(`\nID de Usuario Actual: ${userId}`);
-    }
-
-  } catch (firestoreError) {
-    contextParts.push(`\n[Nota: Datos en tiempo real limitados por entorno Edge.]`);
-  }
-
   contextParts.push(`\n=== SISTEMA DE FINANCIAMIENTO ===`);
   contextParts.push(`Pago inicial: 20%. Interés: 15%. Plazos: 6-12 meses.`);
 
+  if (userId) {
+    contextParts.push(`\nID de Usuario Actual: ${userId}`);
+  }
+
   return contextParts.join('\n');
+}
+
+/**
+ * Guarda el historial en Firestore de forma centralizada.
+ * Optimizado para no exceder 512MB de almacenamiento acumulado (Estrategia de ahorro de costos).
+ */
+async function saveChatHistory(userId: string | null, messages: any[]) {
+  if (!userId) return;
+  try {
+    const db = adminFirestore();
+    
+    // Limitamos a los últimos 10 mensajes para mayor ahorro de espacio (512MB limit strategy)
+    const optimizedHistory = messages.slice(-10).map(m => ({
+      role: m.role,
+      content: m.content.substring(0, 2000) // Truncamos mensajes extremadamente largos
+    }));
+
+    // Añadimos TTL de 30 días para limpieza automática en Firestore
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 30);
+
+    const chatData = {
+      userId,
+      messages: optimizedHistory,
+      updatedAt: new Date().toISOString(),
+      expiresAt: expirationDate // TTL Field para Firestore
+    };
+
+    // Guardamos en el perfil del usuario
+    const profileChatRef = db.collection("profiles").doc(userId).collection("eva_history").doc("latest");
+    await profileChatRef.set(chatData, { merge: true });
+    
+    // Registro global simplificado para ahorrar espacio
+    await db.collection("eva_chats").add({
+      userId,
+      preview: optimizedHistory[optimizedHistory.length - 1]?.content.substring(0, 100),
+      timestamp: new Date().toISOString(),
+      expiresAt: expirationDate
+    });
+    
+  } catch (error) {
+    console.error("Error persistiendo historial (Storage Save):", error);
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -92,96 +101,118 @@ export async function POST(req: NextRequest) {
       4. Asegúrate de que tus frases estén completas y bien estructuradas.`
     };
 
-    // Llamada a Groq con streaming habilitado
-    const groqResponse = await fetch(GROQ_API_URL, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${GROQ_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "llama-3.3-70b-versatile",
-        messages: [systemMessage, ...messages],
-        temperature: 0.5, // Bajamos la temperatura para mayor estabilidad
-        max_tokens: 1024,
-        stream: true,
-      }),
-    });
+    // 1. Intento con Groq (Llama-3)
+    try {
+      const groqResponse = await fetch(GROQ_API_URL, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${GROQ_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: "llama-3.3-70b-versatile",
+          messages: [systemMessage, ...messages],
+          temperature: 0.5,
+          max_tokens: 1024,
+          stream: true,
+        }),
+      });
 
-    if (!groqResponse.ok) {
-      const errorText = await groqResponse.text();
-      console.error("Groq API error:", errorText);
-
-      // Manejo específico de Rate Limit
-      if (groqResponse.status === 429) {
-        return NextResponse.json({
-          error: "rate_limit",
-          message: "Lo siento, he recibido un gran volumen de consultas en poco tiempo. Por favor, inténtalo de nuevo en unos minutos; estaré lista para asistirte entonces."
-        }, { status: 429 });
+      if (!groqResponse.ok) {
+        if (groqResponse.status === 429) throw new Error("RATE_LIMIT");
+        throw new Error(`Groq Error: ${groqResponse.status}`);
       }
 
-      return NextResponse.json({ error: "Error de IA" }, { status: 500 });
-    }
-
-    // Transformamos el stream de Groq (OpenAI format) a un stream legible por el cliente
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
-
-    const stream = new ReadableStream({
-      async start(controller) {
-        const reader = groqResponse.body?.getReader();
-        if (!reader) return;
-
-        let buffer = "";
-        try {
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            buffer += decoder.decode(value, { stream: true });
-            const lines = buffer.split("\n");
-            buffer = lines.pop() || ""; // Guardar la línea incompleta
-
-            for (const line of lines) {
-              const trimmedLine = line.trim();
-              if (!trimmedLine) continue;
-
-              if (trimmedLine.startsWith("data: ")) {
-                const dataStr = trimmedLine.slice(6);
-                if (dataStr === "[DONE]") {
-                  controller.close();
-                  return;
-                }
-                try {
-                  const data = JSON.parse(dataStr);
-                  const content = data.choices?.[0]?.delta?.content || "";
-                  if (content) {
+      const encoder = new TextEncoder();
+      const decoder = new TextDecoder();
+      const stream = new ReadableStream({
+        async start(controller) {
+          const reader = groqResponse.body?.getReader();
+          if (!reader) return;
+          
+          let fullAssistantResponse = "";
+          try {
+            while (true) {
+              const { done, value } = await reader.read();
+              if (done) break;
+              
+              const chunk = decoder.decode(value);
+              const lines = chunk.split("\n");
+              for (const line of lines) {
+                if (line.trim().startsWith("data: ") && line.trim() !== "data: [DONE]") {
+                  try {
+                    const data = JSON.parse(line.trim().substring(6));
+                    const content = data.choices[0]?.delta?.content || "";
+                    fullAssistantResponse += content;
                     controller.enqueue(encoder.encode(content));
-                  }
-                } catch (e) {
-                  // Error parseando JSON parcial, lo ignoramos o manejamos
+                  } catch (e) {}
                 }
               }
             }
+          } finally {
+            // Guardar historial al terminar el stream
+            saveChatHistory(userId, [...messages, { role: "assistant", content: fullAssistantResponse }]);
+            controller.close();
           }
-        } catch (error) {
-          controller.error(error);
+        },
+      });
+
+      return new Response(stream);
+
+    } catch (groqError: any) {
+      if (groqError.message === "RATE_LIMIT" || groqError.message.includes("Error")) {
+        console.log("Falla en Groq, activando fallback a Gemini 1.5 Pro");
+        return await handleGeminiFallback(systemMessage, messages, userId);
+      }
+      throw groqError;
+    }
+
+  } catch (error: any) {
+    console.error("Chat API error:", error);
+    return NextResponse.json({ error: "Error en el servicio de IA" }, { status: 500 });
+  }
+}
+
+async function handleGeminiFallback(systemMessage: any, userMessages: any[], userId: string | null) {
+  if (!GEMINI_API_KEY) {
+    return NextResponse.json({ error: "No Gemini API Key" }, { status: 500 });
+  }
+
+  try {
+    const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-pro",
+      systemInstruction: systemMessage.content 
+    });
+
+    const history = userMessages.slice(0, -1).map(m => ({
+      role: m.role === "assistant" ? "model" : "user",
+      parts: [{ text: m.content }]
+    }));
+
+    const lastMessage = userMessages[userMessages.length - 1].content;
+    const result = await model.startChat({ history }).sendMessageStream(lastMessage);
+
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      async start(controller) {
+        let fullAssistantResponse = "";
+        try {
+          for await (const chunk of result.stream) {
+            const text = chunk.text();
+            fullAssistantResponse += text;
+            controller.enqueue(encoder.encode(text));
+          }
         } finally {
-          reader.releaseLock();
+          saveChatHistory(userId, [...userMessages, { role: "assistant", content: fullAssistantResponse }]);
+          controller.close();
         }
       },
     });
 
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/plain; charset=utf-8",
-        "Cache-Control": "no-cache",
-        "Connection": "keep-alive",
-      },
-    });
-
+    return new Response(stream);
   } catch (error) {
-    console.error("Chat API error:", error);
-    return NextResponse.json({ error: "Error interno" }, { status: 500 });
+    console.error("Gemini Fallback Error:", error);
+    return NextResponse.json({ error: "Servicio de IA no disponible" }, { status: 500 });
   }
 }
