@@ -169,7 +169,7 @@ export async function POST(req: NextRequest) {
 
     } catch (groqError: any) {
       if (groqError.message === "RATE_LIMIT" || groqError.message.includes("Error")) {
-        console.log("Falla en Groq, activando fallback a Gemini 1.5 Pro");
+        console.log("Falla en Groq, activando fallback a Gemini 2.5 Flash");
         return await handleGeminiFallback(systemMessage, messages, userId);
       }
       throw groqError;
@@ -189,7 +189,7 @@ async function handleGeminiFallback(systemMessage: any, userMessages: any[], use
   try {
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-pro",
+      model: "gemini-2.5-flash",
       systemInstruction: systemMessage.content 
     });
 
