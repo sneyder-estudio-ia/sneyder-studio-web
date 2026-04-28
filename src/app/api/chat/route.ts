@@ -86,6 +86,14 @@ async function saveChatHistory(userId: string | null, messages: any[]) {
 export async function POST(req: NextRequest) {
   try {
     const { messages, userId } = await req.json();
+    
+    if (!GROQ_API_KEY) {
+      console.error("Missing GROQ_API_KEY");
+    }
+    if (!GEMINI_API_KEY) {
+      console.error("Missing GEMINI_API_KEY");
+    }
+
     const platformContext = await getFullPlatformContext(userId);
 
     const systemMessage = {

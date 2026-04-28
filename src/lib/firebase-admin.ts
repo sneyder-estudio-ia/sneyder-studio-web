@@ -13,64 +13,52 @@ import * as admin from "firebase-admin";
 import fs from "fs";
 import path from "path";
 
-function getFreshPrivateKey() {
-  let key = process.env.FIREBASE_PRIVATE_KEY || "";
-  
-  // Forzar lectura del archivo .env.local físico para saltar la memoria caché del servidor sin necesidad de reiniciar
-  try {
-    const envPath = path.join(process.cwd(), '.env.local');
-    if (fs.existsSync(envPath)) {
-      const envContent = fs.readFileSync(envPath, 'utf8');
-      // Buscar la variable ignorando saltos de línea y obtener contenido exacto
-      const match = envContent.match(/FIREBASE_PRIVATE_KEY="([\s\S]*?)"/);
-      if (match && match[1]) {
-        key = match[1];
-      }
-    }
-  } catch (e) {
-    console.error("No se pudo leer .env.local directamente", e);
-  }
+// Singleton para evitar múltiples inicializaciones
+let adminApp: admin.app.App | null = null;
 
+function getFreshPrivateKey() {
+  const key = process.env.FIREBASE_PRIVATE_KEY || "";
   if (!key) return undefined;
 
   return key
     .replace(/\\n/g, "\n")
     .replace(/^"|"$/g, "")
     .replace(/\r/g, "")
-    .split('\n')
-    .map(line => line.includes('PRIVATE KEY') ? line : line.replace(/\s+/g, ''))
-    .join('\n')
     .trim();
 }
 
-// Configuración de la Cuenta de Servicio
-const serviceAccount = {
-  projectId: process.env.FIREBASE_PROJECT_ID,
-  clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  privateKey: getFreshPrivateKey(),
-};
-
 /**
  * Inicializa la aplicación administrativa de Firebase de forma segura
- * Evita la inicialización duplicada en entornos de Hot Reload / Serverless
  */
 export function getFirebaseAdmin() {
-  if (!serviceAccount.projectId || !serviceAccount.clientEmail || !serviceAccount.privateKey) {
+  if (adminApp) return adminApp;
+
+  // Buscar si ya existe una app con el nombre default
+  const existingApp = admin.apps.find(app => app?.name === "[DEFAULT]");
+  if (existingApp) {
+    adminApp = existingApp;
+    return adminApp;
+  }
+
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = getFreshPrivateKey();
+
+  if (!projectId || !clientEmail || !privateKey) {
     throw new Error(
       "CMS: Faltan variables de entorno para Firebase Admin (FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY)."
     );
   }
 
-  // Eliminar cualquier instancia previa en memoria caché para forzar que cargue la contraseña fresca reparada
-  if (admin.apps.length > 0) {
-    admin.apps.forEach((app) => {
-      if (app) admin.app(app.name).delete();
-    });
-  }
-
-  return admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount as any),
+  adminApp = admin.initializeApp({
+    credential: admin.credential.cert({
+      projectId,
+      clientEmail,
+      privateKey,
+    }),
   });
+
+  return adminApp;
 }
 
 export const adminMessaging = () => getFirebaseAdmin().messaging();
