@@ -10,12 +10,44 @@ import * as admin from "firebase-admin";
  * - Acceso total a Firestore
  */
 
+import fs from "fs";
+import path from "path";
+
+function getFreshPrivateKey() {
+  let key = process.env.FIREBASE_PRIVATE_KEY || "";
+  
+  // Forzar lectura del archivo .env.local físico para saltar la memoria caché del servidor sin necesidad de reiniciar
+  try {
+    const envPath = path.join(process.cwd(), '.env.local');
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      // Buscar la variable ignorando saltos de línea y obtener contenido exacto
+      const match = envContent.match(/FIREBASE_PRIVATE_KEY="([\s\S]*?)"/);
+      if (match && match[1]) {
+        key = match[1];
+      }
+    }
+  } catch (e) {
+    console.error("No se pudo leer .env.local directamente", e);
+  }
+
+  if (!key) return undefined;
+
+  return key
+    .replace(/\\n/g, "\n")
+    .replace(/^"|"$/g, "")
+    .replace(/\r/g, "")
+    .split('\n')
+    .map(line => line.includes('PRIVATE KEY') ? line : line.replace(/\s+/g, ''))
+    .join('\n')
+    .trim();
+}
+
 // Configuración de la Cuenta de Servicio
 const serviceAccount = {
   projectId: process.env.FIREBASE_PROJECT_ID,
   clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-  // Reemplazar los saltos de línea literales \n por caracteres reales
-  privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, "\n"),
+  privateKey: getFreshPrivateKey(),
 };
 
 /**
@@ -29,14 +61,15 @@ export function getFirebaseAdmin() {
     );
   }
 
-  // Si ya existe una app, retornarla; de lo contrario, crear una nueva
+  // Eliminar cualquier instancia previa en memoria caché para forzar que cargue la contraseña fresca reparada
   if (admin.apps.length > 0) {
-    return admin.apps[0]!;
+    admin.apps.forEach((app) => {
+      if (app) admin.app(app.name).delete();
+    });
   }
 
   return admin.initializeApp({
     credential: admin.credential.cert(serviceAccount as any),
-    // Opcional: databaseURL: `https://${serviceAccount.projectId}.firebaseio.com`
   });
 }
 

@@ -16,6 +16,14 @@ export interface AdminSettings {
   terms_content: string;
   contract_content: string;
   about_us_content: string;
+  credit_annual_interest: string;
+  credit_monthly_interest: string;
+  credit_late_fee: string;
+  credit_min_down_payment: string;
+  contract_representative: string;
+  contract_company_id: string;
+  contract_company_name: string;
+  contract_location: string;
 }
 
 export const DEFAULT_SETTINGS: AdminSettings = {
@@ -32,6 +40,14 @@ export const DEFAULT_SETTINGS: AdminSettings = {
   terms_content: legalData.terminos.content.trim(),
   contract_content: legalData.contrato.content.trim(),
   about_us_content: legalData.nosotros.content.trim(),
+  credit_annual_interest: "60",
+  credit_monthly_interest: "5",
+  credit_late_fee: "2",
+  credit_min_down_payment: "30",
+  contract_representative: "Sneyder José",
+  contract_company_id: "",
+  contract_company_name: "Sneyder Studio",
+  contract_location: "San José, Costa Rica"
 };
 
 export const getAdminSettings = async (): Promise<AdminSettings> => {

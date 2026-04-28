@@ -8,6 +8,7 @@ import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
+import { getAdminSettings } from "@/lib/settings";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
@@ -53,6 +54,9 @@ export default function ContrapropuestaPage() {
       if (!orderId) return;
       setIsLoading(true);
       try {
+        const adminSettings = await getAdminSettings();
+        const defaultInterest = adminSettings.credit_monthly_interest ? Number(adminSettings.credit_monthly_interest) : 5;
+
         const orderDoc = await getDoc(doc(db, "orders", orderId));
         if (orderDoc.exists()) {
           const data = orderDoc.data();
@@ -68,7 +72,7 @@ export default function ContrapropuestaPage() {
               development_time_unit: cp.development_time_unit || "semanas",
               payment_method: cp.payment_method || data.payment_method || "contado",
               credit_months: cp.credit_terms?.months || data.credit_info?.months || 6,
-              interest_rate: cp.credit_terms?.interest_rate || data.credit_info?.interest_rate || 5,
+              interest_rate: cp.credit_terms?.interest_rate || data.credit_info?.interest_rate || defaultInterest,
               notes: cp.notes || "",
             }));
 
@@ -82,7 +86,7 @@ export default function ContrapropuestaPage() {
               final_price: (data.total || "").toString(),
               payment_method: data.payment_method || "contado",
               credit_months: data.credit_info?.months || 6,
-              interest_rate: data.credit_info?.interest_rate || 5,
+              interest_rate: data.credit_info?.interest_rate || defaultInterest,
             }));
           }
 

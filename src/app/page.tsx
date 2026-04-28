@@ -24,6 +24,7 @@ import {
 import { getCMSData } from "@/lib/cms";
 import { getAdminSettings } from "@/lib/settings";
 import { siteData } from "@/data/siteData";
+import ChatBot from "@/components/ChatBot";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
@@ -983,6 +984,9 @@ export default function Home() {
           </div>
         </div>
       )}
+
+      {/* ChatBot Flotante */}
+      <ChatBot />
     </div>
   );
 }

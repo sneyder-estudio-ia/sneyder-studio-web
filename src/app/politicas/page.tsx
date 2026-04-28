@@ -135,7 +135,14 @@ export default function PoliticasPage() {
           </header>
 
           <div className="bg-surface-container-low rounded-[2rem] border border-white/5 shadow-2xl p-8 md:p-16 space-y-8 prose prose-invert prose-slate max-w-none prose-h2:text-white prose-h2:font-headline prose-h2:text-xl prose-p:text-slate-400 prose-p:leading-relaxed">
-            <div dangerouslySetInnerHTML={{ __html: data.content.replace(/\n\s*##\s*(.*)/g, '<h2 class="text-white font-bold mt-12 mb-6 flex items-center gap-4"><span class="w-8 h-px bg-tertiary/30"></span>$1</h2>').replace(/\n/g, '<br/>') }} />
+            <div 
+              className="rich-text-content"
+              dangerouslySetInnerHTML={{ 
+                __html: data.content?.includes('<') 
+                  ? data.content 
+                  : data.content.replace(/\n\s*##\s*(.*)/g, '<h2 class="text-white font-bold mt-12 mb-6 flex items-center gap-4"><span class="w-8 h-px bg-tertiary/30"></span>$1</h2>').replace(/\n/g, '<br/>') 
+              }} 
+            />
           </div>
         </div>
       </main>

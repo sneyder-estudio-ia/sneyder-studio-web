@@ -40,13 +40,18 @@ export default function ContactoPage() {
     businessDescription: "",
   });
 
+  const getInterestRate = () => adminSettings?.credit_monthly_interest ? (Number(adminSettings.credit_monthly_interest) / 100) : 0.15;
+  const getInterestRateDisplay = () => adminSettings?.credit_monthly_interest || "15";
+  const getDownPaymentRate = () => adminSettings?.credit_min_down_payment ? (Number(adminSettings.credit_min_down_payment) / 100) : 0.20;
+  const getDownPaymentDisplay = () => adminSettings?.credit_min_down_payment || "20";
+
   const calculateMonthlyPayment = () => {
     const budgetValue = parseFloat(estimatedBudget) || 0;
     if (budgetValue === 0) return 0;
-    const initialPayment = budgetValue * 0.20;
+    const initialPayment = budgetValue * getDownPaymentRate();
     const remainingAmount = budgetValue - initialPayment;
     const resourceFee = budgetValue * 0.01;
-    const interestAmount = remainingAmount * 0.15;
+    const interestAmount = remainingAmount * getInterestRate();
     const totalToFinance = remainingAmount + resourceFee + interestAmount;
     return (totalToFinance / creditMonths).toFixed(2);
   };
@@ -131,12 +136,12 @@ export default function ContactoPage() {
         credit_info: wantsCredit ? {
           wants_credit: true,
           budget: budgetValue,
-          initial_payment: budgetValue * 0.20,
+          initial_payment: budgetValue * getDownPaymentRate(),
           resource_fee: budgetValue * 0.01,
-          interest_rate: 15,
+          interest_rate: parseFloat(getInterestRateDisplay()),
           months: creditMonths,
           monthly_payment: parseFloat(calculateMonthlyPayment() as string) || 0,
-          total_with_interest: (budgetValue * 0.80) * 1.15 + budgetValue * 0.01 + budgetValue * 0.20,
+          total_with_interest: (budgetValue * (1 - getDownPaymentRate())) * (1 + getInterestRate()) + budgetValue * 0.01 + budgetValue * getDownPaymentRate(),
           payments_start: "after_completion",
         } : null,
       };
@@ -334,13 +339,13 @@ export default function ContactoPage() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pago Inicial (20%)</p>
-                        <p className="text-xl font-headline font-black text-cyan-400">${(parseFloat(estimatedBudget) * 0.20).toFixed(2)}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pago Inicial ({getDownPaymentDisplay()}%)</p>
+                        <p className="text-xl font-headline font-black text-cyan-400">${(parseFloat(estimatedBudget) * getDownPaymentRate()).toFixed(2)}</p>
                         <p className="text-[9px] text-slate-500 mt-1">Para iniciar el proyecto</p>
                       </div>
                       <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
-                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pago Final (80%)</p>
-                        <p className="text-xl font-headline font-black text-green-400">${(parseFloat(estimatedBudget) * 0.80).toFixed(2)}</p>
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pago Final ({100 - Number(getDownPaymentDisplay())}%)</p>
+                        <p className="text-xl font-headline font-black text-green-400">${(parseFloat(estimatedBudget) * (1 - getDownPaymentRate())).toFixed(2)}</p>
                         <p className="text-[9px] text-slate-500 mt-1">Al entregar el proyecto</p>
                       </div>
                     </div>
@@ -369,7 +374,7 @@ export default function ContactoPage() {
                     <div className="px-6 pb-6 pt-4 space-y-6">
                       <div className="p-4 bg-tertiary/5 border border-tertiary/10 rounded-2xl">
                         <p className="text-[10px] text-tertiary font-bold uppercase tracking-widest mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-sm">info</span> Información de Crédito (USD)</p>
-                        <p className="text-slate-400 text-xs leading-relaxed">Sneyder Studio le permite financiar su contrato con un <span className="text-white font-bold">15% de interés</span> sobre el monto restante + <span className="text-white font-bold">1% de recurso</span>. Incluye un pago inicial del 20%. Las cuotas inician cuando el proyecto sea completado.</p>
+                        <p className="text-slate-400 text-xs leading-relaxed">Sneyder Studio le permite financiar su contrato con un <span className="text-white font-bold">{getInterestRateDisplay()}% de interés</span> sobre el monto restante + <span className="text-white font-bold">1% de recurso</span>. Incluye un pago inicial del {getDownPaymentDisplay()}%. Las cuotas inician cuando el proyecto sea completado.</p>
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mx-1">Plazo de Pago</label>
@@ -380,16 +385,16 @@ export default function ContactoPage() {
                       {parseFloat(estimatedBudget) > 0 && (
                         <div className="space-y-4">
                           <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Pago Inicial (20%)</p>
-                            <p className="text-lg font-headline font-black text-cyan-400">${(parseFloat(estimatedBudget) * 0.20).toFixed(2)} USD</p>
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Pago Inicial ({getDownPaymentDisplay()}%)</p>
+                            <p className="text-lg font-headline font-black text-cyan-400">${(parseFloat(estimatedBudget) * getDownPaymentRate()).toFixed(2)} USD</p>
                           </div>
                           <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
                             <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Cargo por recurso (1%)</p></div>
                             <p className="text-sm font-bold text-white">${(parseFloat(estimatedBudget) * 0.01).toFixed(2)} USD</p>
                           </div>
                           <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
-                            <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Interés (15%)</p></div>
-                            <p className="text-sm font-bold text-white">${(parseFloat(estimatedBudget) * 0.80 * 0.15).toFixed(2)} USD</p>
+                            <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Interés ({getInterestRateDisplay()}%)</p></div>
+                            <p className="text-sm font-bold text-white">${(parseFloat(estimatedBudget) * (1 - getDownPaymentRate()) * getInterestRate()).toFixed(2)} USD</p>
                           </div>
                           <div className="bg-white/5 rounded-2xl p-4 flex items-center justify-between border border-white/5">
                             <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Cuota Mensual</p><p className="text-[9px] text-slate-500 mt-0.5">Inicia al completar el proyecto</p></div>
@@ -397,7 +402,7 @@ export default function ContactoPage() {
                           </div>
                           <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
                             <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Total a Pagar</p>
-                            <p className="text-lg font-headline font-black text-tertiary">${((parseFloat(estimatedBudget) * 0.80) * 1.15 + parseFloat(estimatedBudget) * 0.01 + parseFloat(estimatedBudget) * 0.20).toFixed(2)} USD</p>
+                            <p className="text-lg font-headline font-black text-tertiary">${((parseFloat(estimatedBudget) * (1 - getDownPaymentRate())) * (1 + getInterestRate()) + parseFloat(estimatedBudget) * 0.01 + parseFloat(estimatedBudget) * getDownPaymentRate()).toFixed(2)} USD</p>
                           </div>
                           <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex items-center gap-2">
                             <span className="material-symbols-outlined text-amber-400 text-sm">schedule</span>
