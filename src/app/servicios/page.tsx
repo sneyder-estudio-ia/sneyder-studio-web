@@ -78,32 +78,31 @@ export default function ServicesPage() {
     <div className="text-on-background selection:bg-tertiary/30 selection:text-tertiary min-h-screen bg-background relative overflow-x-hidden">
       {/* Header */}
       <header className={`fixed top-0 w-full z-60 bg-[#0c1324] border-b border-slate-800 flex justify-between items-center px-6 h-16 shadow-[0px_2px_10px_rgba(0,0,0,0.5)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-80" : "pl-0"}`}>
-        <div className="flex items-center gap-0">
-          <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-cyan-400 hover:bg-slate-800 p-1 rounded-full transition-colors"
-          >
-            <span className="material-symbols-outlined">more_vert</span>
-          </button>
-          <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-            <Image
-              src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
-              alt="Sneyder Studio"
-              width={140}
-              height={28}
-              className="h-full w-auto object-contain group-hover:brightness-110"
-            />
+        <div className="flex items-center gap-2">
+          <Link href="/" className="text-slate-400 hover:text-white transition-colors p-2 rounded-full hover:bg-slate-800/50 flex items-center justify-center">
+            <span className="material-symbols-outlined text-2xl">arrow_back</span>
           </Link>
         </div>
 
-        {!user && (
-          <Link
-            href="/"
-            className="bg-tertiary/10 border border-tertiary/50 text-tertiary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-tertiary hover:text-on-tertiary transition-all"
-          >
-            Acceder
-          </Link>
-        )}
+        <div className="absolute left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none">
+          <h2 className="text-white font-headline text-sm md:text-base font-bold uppercase tracking-wider truncate max-w-[200px] md:max-w-none">
+            Servicios
+          </h2>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {!user && (
+            <Link
+              href="/"
+              className="bg-tertiary/10 border border-tertiary/50 text-tertiary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-tertiary hover:text-on-tertiary transition-all"
+            >
+              Acceder
+            </Link>
+          )}
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-cyan-400 hover:bg-slate-800 p-2 rounded-full transition-colors flex items-center justify-center">
+            <span className="material-symbols-outlined text-2xl">more_vert</span>
+          </button>
+        </div>
       </header>
 
       {/* Sidebar */}
