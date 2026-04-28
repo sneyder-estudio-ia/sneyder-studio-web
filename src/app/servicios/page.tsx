@@ -154,7 +154,7 @@ export default function ServicesPage() {
           <NavItem icon="shopping_bag" label="Mis pedidos" href="/mis-pedidos" />
           <NavItem icon="bolt" label="Servicios" href="/servicios" active />
           <NavItem icon="psychology" label="Modelo de IA" href="/ia-models" />
-          <NavItem icon="mail" label="Contacto" href="/contacto" />
+          <NavItem icon="mail" label="Crea pedido" href="/contacto" />
 
           <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Legal</div>
           <NavItem icon="policy" label="Política y condiciones" href="/contrato" small />

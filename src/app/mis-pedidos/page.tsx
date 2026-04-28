@@ -68,33 +68,14 @@ export default function MyOrdersPage() {
   return (
     <div className="bg-[#0a0e1a] text-white min-h-screen selection:bg-cyan-400/30">
       {/* Header */}
-      <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center justify-between px-5 h-16">
-        <div className="flex items-center gap-0">
+      <header className="fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl border-b border-white/5 flex items-center px-5 h-16 shadow-lg">
+        <div className="flex items-center gap-4">
           <Link href="/">
             <button className="text-cyan-400 hover:scale-110 transition-transform p-1 rounded-full hover:bg-white/5">
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
           </Link>
-          <div className="h-6 w-px bg-white/10 mx-1 hidden sm:block"></div>
-          <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-            <Image
-              src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
-              alt="Sneyder Studio"
-              width={140}
-              height={28}
-              className="h-full w-auto object-contain group-hover:brightness-110"
-            />
-          </Link>
-          <h1 className="text-sm font-bold tracking-tight uppercase font-headline text-cyan-400 ml-2 hidden xs:block">Mis Pedidos</h1>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-slate-800 border border-cyan-400/30 flex items-center justify-center overflow-hidden">
-            {user?.photoURL ? (
-              <Image src={user.photoURL} alt="Avatar" width={32} height={32} />
-            ) : (
-              <span className="material-symbols-outlined text-xl text-cyan-400">person</span>
-            )}
-          </div>
+          <h1 className="text-lg font-bold tracking-tight uppercase font-headline text-white border-l border-white/10 pl-4">Mis Pedidos</h1>
         </div>
       </header>
 
@@ -111,12 +92,14 @@ export default function MyOrdersPage() {
               <span className="material-symbols-outlined text-4xl text-slate-600">inventory_2</span>
             </div>
             <div>
-              <h3 className="text-xl font-bold mb-2">Aún no tienes pedidos</h3>
-              <p className="text-slate-500 text-sm max-w-xs mx-auto">Cuando realices una contratación o compra, aparecerá aquí con su estado de seguimiento.</p>
+              <h3 className="text-xl font-bold mb-2">Tu próximo éxito comienza aquí</h3>
+              <p className="text-slate-500 text-sm max-w-sm mx-auto leading-relaxed">
+                Envía tu propuesta sin compromiso ni cargos adicionales. Nuestro equipo de expertos la analizará detalladamente y te contactaremos con una solución personalizada para potenciar tu negocio.
+              </p>
             </div>
-            <Link href="/">
-              <button className="bg-cyan-400 text-black px-8 py-3 rounded-xl font-bold uppercase tracking-wider text-xs hover:bg-cyan-300 transition-all">
-                Ver Servicios
+            <Link href="/contacto">
+              <button className="bg-cyan-400 text-black px-10 py-4 rounded-2xl font-bold uppercase tracking-widest text-[10px] hover:bg-cyan-300 transition-all hover:scale-105 shadow-[0_10px_30px_rgba(47,217,244,0.2)]">
+                Crear Pedido
               </button>
             </Link>
           </div>

@@ -88,7 +88,7 @@ export default function AdminSidebar({ isMenuOpen, setIsMenuOpen }: { isMenuOpen
             <SidebarItem icon="shopping_cart" label="Mis pedidos" href="/mis-pedidos" active={pathname === "/mis-pedidos"} />
             <SidebarItem icon="build" label="Servicios" href="/servicios" active={pathname === "/servicios"} />
             <SidebarItem icon="psychology" label="Modelo de IA" href="/ia-models" active={pathname === "/ia-models"} />
-            <SidebarItem icon="mail" label="Contacto" href="/contacto" active={pathname === "/contacto"} />
+            <SidebarItem icon="mail" label="Crea pedido" href="/contacto" active={pathname === "/contacto"} />
             <div className="pt-2 text-slate-500 font-headline text-[10px] uppercase tracking-widest">Legal</div>
             <SidebarItem icon="policy" label="Políticas" href="/politicas" />
             <SidebarItem icon="gavel" label="Términos" href="/terminos" />

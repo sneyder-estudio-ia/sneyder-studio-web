@@ -1,8 +1,9 @@
 "use client";
 
 import Image from "next/image";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from 'next/navigation';
 import { auth, db } from '@/lib/firebase';
 import { onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, getDoc, setDoc, addDoc, collection } from "firebase/firestore";
@@ -12,6 +13,7 @@ import { getAdminSettings } from "@/lib/settings";
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
 export default function ContactoPage() {
+  const router = useRouter();
   const [data, setData] = useState<any>(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
@@ -26,6 +28,9 @@ export default function ContactoPage() {
   const [estimatedBudget, setEstimatedBudget] = useState("");
   const [paymentDay, setPaymentDay] = useState(1);
   const [adminSettings, setAdminSettings] = useState<any>(null);
+  const [activeFaqId, setActiveFaqId] = useState<string | null>(null);
+  const faqSectionRef = useRef<HTMLDivElement>(null);
+
   const [formFields, setFormFields] = useState({
     fullName: "",
     email: "",
@@ -38,8 +43,12 @@ export default function ContactoPage() {
   const calculateMonthlyPayment = () => {
     const budgetValue = parseFloat(estimatedBudget) || 0;
     if (budgetValue === 0) return 0;
-    const totalWithInterest = budgetValue * 1.05;
-    return (totalWithInterest / creditMonths).toFixed(2);
+    const initialPayment = budgetValue * 0.20;
+    const remainingAmount = budgetValue - initialPayment;
+    const resourceFee = budgetValue * 0.01;
+    const interestAmount = remainingAmount * 0.15;
+    const totalToFinance = remainingAmount + resourceFee + interestAmount;
+    return (totalToFinance / creditMonths).toFixed(2);
   };
 
   useEffect(() => {
@@ -67,6 +76,22 @@ export default function ContactoPage() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (activeFaqId && faqSectionRef.current) {
+        const rect = faqSectionRef.current.getBoundingClientRect();
+        // Close if the section is mostly out of the viewport
+        if (rect.bottom < 50 || rect.top > window.innerHeight - 50) {
+          setActiveFaqId(null);
+        }
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [activeFaqId]);
+
 
   const handleSignOut = async () => {
     await signOut(auth);
@@ -106,10 +131,13 @@ export default function ContactoPage() {
         credit_info: wantsCredit ? {
           wants_credit: true,
           budget: budgetValue,
+          initial_payment: budgetValue * 0.20,
+          resource_fee: budgetValue * 0.01,
+          interest_rate: 15,
           months: creditMonths,
           monthly_payment: parseFloat(calculateMonthlyPayment() as string) || 0,
-          total_with_interest: budgetValue * 1.05,
-          interest_rate: 5,
+          total_with_interest: (budgetValue * 0.80) * 1.15 + budgetValue * 0.01 + budgetValue * 0.20,
+          payments_start: "after_completion",
         } : null,
       };
       await addDoc(collection(db, 'orders'), orderData);
@@ -146,18 +174,21 @@ export default function ContactoPage() {
   return (
     <div className="text-on-background selection:bg-tertiary/30 selection:text-tertiary min-h-screen bg-background relative overflow-x-hidden">
       {/* Header */}
-      <header className={`fixed top-0 w-full z-60 bg-[#0c1324] border-b border-slate-800 flex justify-between items-center px-6 h-16 shadow-[0px_2px_10px_rgba(0,0,0,0.5)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-80" : "pl-0"}`}>
-        <div className="flex items-center gap-0">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-cyan-400 hover:bg-slate-800 p-1 rounded-full transition-colors">
+      <header className={`fixed top-0 w-full z-60 bg-[#0c1324] border-b border-slate-800 flex justify-between items-center px-4 h-16 shadow-[0px_2px_10px_rgba(0,0,0,0.5)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-80" : "pl-0"}`}>
+        <div className="flex items-center gap-2">
+          <button onClick={() => router.back()} className="text-cyan-400 hover:bg-slate-800 p-2 rounded-full transition-colors flex items-center justify-center">
+            <span className="material-symbols-outlined">arrow_back</span>
+          </button>
+          <span className="text-white font-headline font-bold text-sm uppercase tracking-[0.2em]">Crea Pedido</span>
+        </div>
+        <div className="flex items-center gap-2">
+          {!user && (
+            <Link href="/" className="bg-tertiary/10 border border-tertiary/50 text-tertiary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-tertiary hover:text-on-tertiary transition-all">Acceder</Link>
+          )}
+          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-cyan-400 hover:bg-slate-800 p-2 rounded-full transition-colors flex items-center justify-center">
             <span className="material-symbols-outlined">more_vert</span>
           </button>
-          <Link href="/" className="-ml-4 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-            <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio" width={140} height={28} className="h-full w-auto object-contain group-hover:brightness-110" />
-          </Link>
         </div>
-        {!user && (
-          <Link href="/" className="bg-tertiary/10 border border-tertiary/50 text-tertiary px-4 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-widest hover:bg-tertiary hover:text-on-tertiary transition-all">Acceder</Link>
-        )}
       </header>
 
       {/* Sidebar */}
@@ -187,7 +218,7 @@ export default function ContactoPage() {
           <NavItem icon="shopping_bag" label="Mis pedidos" href="/mis-pedidos" />
           <NavItem icon="bolt" label="Servicios" href="/servicios" />
           <NavItem icon="psychology" label="Modelo de IA" href="/ia-models" />
-          <NavItem icon="mail" label="Contacto" href="/contacto" active />
+          <NavItem icon="mail" label="Crea pedido" href="/contacto" active />
           <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Legal</div>
           <NavItem icon="policy" label="Política y condiciones" href="/contrato" small />
           <NavItem icon="gavel" label="Términos de servicio" href="/contrato" small />
@@ -257,46 +288,115 @@ export default function ContactoPage() {
                     <textarea required rows={4} placeholder="Cuéntenos qué hace su empresa y cuáles son sus objetivos..." value={formFields.businessDescription} onChange={(e) => setFormFields(prev => ({...prev, businessDescription: e.target.value}))} className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl resize-none"></textarea>
                   </div>
                 </div>
-                <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all duration-500">
-                  <button type="button" onClick={() => setWantsCredit(!wantsCredit)} className="w-full px-6 py-5 flex items-center justify-between group">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${wantsCredit ? 'bg-cyan-400/20 text-cyan-400' : 'bg-white/5 text-slate-500'}`}>
-                        <span className="material-symbols-outlined text-xl">payments</span>
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-4">Presupuesto Estimado ($ USD)</label>
+                    <input required type="number" value={estimatedBudget} onChange={(e) => setEstimatedBudget(e.target.value)} placeholder="Ej. 1500" className="w-full bg-white/5 border border-white/10 focus:border-tertiary/50 outline-none rounded-2xl px-6 py-4 text-white transition-all backdrop-blur-xl" />
+                  </div>
+                </div>
+                {/* Checkbox Quiero Crédito */}
+                <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
+                  <label className="flex items-center gap-4 cursor-pointer select-none">
+                    <div className="relative">
+                      <input type="checkbox" checked={wantsCredit} onChange={() => setWantsCredit(!wantsCredit)} className="sr-only peer" />
+                      <div className="w-6 h-6 rounded-lg border-2 border-white/20 bg-white/5 peer-checked:bg-cyan-400 peer-checked:border-cyan-400 transition-all flex items-center justify-center">
+                        {wantsCredit && <span className="material-symbols-outlined text-[16px] text-[#0c1324] font-bold">check</span>}
                       </div>
-                      <div className="text-left">
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold">Quiero Crédito</h4>
+                      <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Activar opciones de financiamiento</p>
+                    </div>
+                  </label>
+                </div>
+                {/* Pago de contado (sin crédito) */}
+                {!wantsCredit && parseFloat(estimatedBudget) > 0 && (
+                  <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-4 animate-fade-in">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-green-400 text-xl">account_balance_wallet</span>
+                      </div>
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Método de Pago</p>
+                        <h4 className="text-white font-bold">Pago de Contado</h4>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pago Inicial (20%)</p>
+                        <p className="text-xl font-headline font-black text-cyan-400">${(parseFloat(estimatedBudget) * 0.20).toFixed(2)}</p>
+                        <p className="text-[9px] text-slate-500 mt-1">Para iniciar el proyecto</p>
+                      </div>
+                      <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center">
+                        <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-1">Pago Final (80%)</p>
+                        <p className="text-xl font-headline font-black text-green-400">${(parseFloat(estimatedBudget) * 0.80).toFixed(2)}</p>
+                        <p className="text-[9px] text-slate-500 mt-1">Al entregar el proyecto</p>
+                      </div>
+                    </div>
+                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                      <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Cargo por recurso (1%)</p><p className="text-xs text-slate-400 mt-0.5">Para cubrir costos de recurso</p></div>
+                      <p className="text-sm font-bold text-white">${(parseFloat(estimatedBudget) * 0.01).toFixed(2)} USD</p>
+                    </div>
+                    <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                      <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Total a Pagar</p>
+                      <p className="text-xl font-headline font-black text-tertiary">${(parseFloat(estimatedBudget) * 1.01).toFixed(2)} USD</p>
+                    </div>
+                  </div>
+                )}
+                {/* Tarjeta de crédito / financiamiento */}
+                {wantsCredit && (
+                  <div className="bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all duration-500 animate-fade-in">
+                    <div className="px-6 py-5 flex items-center gap-4 border-b border-white/5">
+                      <div className="w-10 h-10 rounded-xl bg-cyan-400/20 flex items-center justify-center">
+                        <span className="material-symbols-outlined text-cyan-400 text-xl">payments</span>
+                      </div>
+                      <div>
                         <p className="text-[10px] font-bold uppercase tracking-widest text-slate-500">Opciones de Financiamiento</p>
                         <h4 className="text-white font-bold">Crédito</h4>
                       </div>
                     </div>
-                    <span className={`material-symbols-outlined transition-transform duration-300 ${wantsCredit ? 'rotate-180 text-cyan-400' : 'text-slate-500'}`}>expand_more</span>
-                  </button>
-                  <div className={`px-6 transition-all duration-500 ease-in-out ${wantsCredit ? 'max-h-[500px] pb-6 opacity-100' : 'max-h-0 opacity-0 overflow-hidden'}`}>
-                    <div className="space-y-6 pt-2">
+                    <div className="px-6 pb-6 pt-4 space-y-6">
                       <div className="p-4 bg-tertiary/5 border border-tertiary/10 rounded-2xl">
-                        <p className="text-[10px] text-tertiary font-bold uppercase tracking-widest mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-sm">info</span> Información de Pago (USD)</p>
-                        <p className="text-slate-400 text-xs leading-relaxed">Sneyder Studio le permite financiar su contrato con un <span className="text-white font-bold">5% de interés fijo</span> sobre el monto total de contado.</p>
+                        <p className="text-[10px] text-tertiary font-bold uppercase tracking-widest mb-2 flex items-center gap-2"><span className="material-symbols-outlined text-sm">info</span> Información de Crédito (USD)</p>
+                        <p className="text-slate-400 text-xs leading-relaxed">Sneyder Studio le permite financiar su contrato con un <span className="text-white font-bold">15% de interés</span> sobre el monto restante + <span className="text-white font-bold">1% de recurso</span>. Incluye un pago inicial del 20%. Las cuotas inician cuando el proyecto sea completado.</p>
                       </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mx-1">Presupuesto ($ USD)</label>
-                          <input type="number" value={estimatedBudget} onChange={(e) => setEstimatedBudget(e.target.value)} placeholder="Ej. 1500" className="w-full bg-black/20 border border-white/5 rounded-xl py-3 px-4 text-white focus:border-tertiary outline-none text-sm" />
-                        </div>
-                        <div className="space-y-1.5">
-                          <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mx-1">Plazo de Pago</label>
-                          <select value={creditMonths} onChange={(e) => setCreditMonths(parseInt(e.target.value))} className="w-full bg-black/20 border border-white/5 rounded-xl py-3 px-4 text-white focus:border-tertiary outline-none text-sm appearance-none">
-                            {[6, 7, 8, 9, 10, 11, 12].map(m => (<option key={m} value={m} className="bg-[#0c1324]">{m} Meses</option>))}
-                          </select>
-                        </div>
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-bold uppercase tracking-widest text-slate-500 mx-1">Plazo de Pago</label>
+                        <select value={creditMonths} onChange={(e) => setCreditMonths(parseInt(e.target.value))} className="w-full bg-black/20 border border-white/5 rounded-xl py-3 px-4 text-white focus:border-tertiary outline-none text-sm appearance-none">
+                          {[6, 7, 8, 9, 10, 11, 12].map(m => (<option key={m} value={m} className="bg-[#0c1324]">{m} Meses</option>))}
+                        </select>
                       </div>
                       {parseFloat(estimatedBudget) > 0 && (
-                        <div className="bg-white/5 rounded-2xl p-4 flex items-center justify-between border border-white/5">
-                          <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Cuota Mensual</p><p className="text-xl font-headline font-black text-tertiary">${calculateMonthlyPayment()} USD</p></div>
-                          <div className="text-right"><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Total + Interés</p><p className="text-xs font-bold text-white">${(parseFloat(estimatedBudget) * 1.05).toFixed(2)} USD</p></div>
+                        <div className="space-y-4">
+                          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Pago Inicial (20%)</p>
+                            <p className="text-lg font-headline font-black text-cyan-400">${(parseFloat(estimatedBudget) * 0.20).toFixed(2)} USD</p>
+                          </div>
+                          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                            <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Cargo por recurso (1%)</p></div>
+                            <p className="text-sm font-bold text-white">${(parseFloat(estimatedBudget) * 0.01).toFixed(2)} USD</p>
+                          </div>
+                          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                            <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Interés (15%)</p></div>
+                            <p className="text-sm font-bold text-white">${(parseFloat(estimatedBudget) * 0.80 * 0.15).toFixed(2)} USD</p>
+                          </div>
+                          <div className="bg-white/5 rounded-2xl p-4 flex items-center justify-between border border-white/5">
+                            <div><p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Cuota Mensual</p><p className="text-[9px] text-slate-500 mt-0.5">Inicia al completar el proyecto</p></div>
+                            <p className="text-xl font-headline font-black text-tertiary">${calculateMonthlyPayment()} USD</p>
+                          </div>
+                          <div className="bg-white/5 rounded-2xl p-4 border border-white/5 flex items-center justify-between">
+                            <p className="text-[9px] font-bold uppercase tracking-widest text-slate-500">Total a Pagar</p>
+                            <p className="text-lg font-headline font-black text-tertiary">${((parseFloat(estimatedBudget) * 0.80) * 1.15 + parseFloat(estimatedBudget) * 0.01 + parseFloat(estimatedBudget) * 0.20).toFixed(2)} USD</p>
+                          </div>
+                          <div className="p-3 bg-amber-500/5 border border-amber-500/10 rounded-xl flex items-center gap-2">
+                            <span className="material-symbols-outlined text-amber-400 text-sm">schedule</span>
+                            <p className="text-[10px] text-amber-400 font-bold">Las cuotas mensuales comienzan cuando el proyecto pase de producción a completado.</p>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
-                </div>
+                )}
                 <button disabled={formStatus === 'sending'} className={`w-full py-5 rounded-2xl font-bold uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 ${formStatus === 'success' ? 'bg-green-500 text-white' : 'bg-tertiary text-on-tertiary hover:brightness-110 shadow-[0_15px_40px_rgba(47,217,244,0.2)]'}`}>
                   {formStatus === 'idle' && <>Enviar pedido <span className="material-symbols-outlined text-sm">send</span></>}
                   {formStatus === 'sending' && <><span className="w-4 h-4 border-2 border-on-tertiary border-t-transparent animate-spin rounded-full"></span>Enviando...</>}
@@ -307,6 +407,34 @@ export default function ContactoPage() {
 
             {/* Info */}
             <div className="space-y-12 animate-fade-in delay-200">
+              {/* FAQ Section */}
+              <div className="space-y-8">
+                <h3 className="font-headline text-3xl font-bold text-white tracking-tight">Preguntas Frecuentes</h3>
+                <div className="space-y-4" ref={faqSectionRef}>
+                  <FAQItem 
+                    id="faq-1"
+                    question="¿Cómo funciona el proceso de creación de pedidos?" 
+                    answer="Es un proceso ágil y totalmente transparente. Usted completa el formulario con los detalles de su idea y el presupuesto estimado. Nosotros recibimos su solicitud y realizamos un análisis técnico sin costo previo. En menos de 48 horas, un especialista le contactará para alinear la visión del proyecto, presentarle un plan de trabajo detallado y definir los hitos de entrega. No existe ningún compromiso ni cobro solo por el envío de su propuesta inicial."
+                    isOpen={activeFaqId === "faq-1"}
+                    onToggle={() => setActiveFaqId(activeFaqId === "faq-1" ? null : "faq-1")}
+                  />
+                  <FAQItem 
+                    id="faq-2"
+                    question="¿Cómo funciona el beneficio del financiamiento (crédito)?" 
+                    answer="Entendemos que el software de alto nivel es una inversión estratégica. Por ello, ofrecemos financiamiento directo: usted abona el 20% inicial para activar el desarrollo y el saldo restante se difiere en cuotas de 6 a 12 meses. La ventaja principal es que las cuotas mensuales comienzan a cobrarse únicamente después de que el proyecto ha sido completado y entregado, permitiéndole rentabilizar su aplicación desde el primer día."
+                    isOpen={activeFaqId === "faq-2"}
+                    onToggle={() => setActiveFaqId(activeFaqId === "faq-2" ? null : "faq-2")}
+                  />
+                  <FAQItem 
+                    id="faq-3"
+                    question="¿Qué nivel de acompañamiento recibo durante el desarrollo?" 
+                    answer="En Sneyder Studio actuamos como sus socios tecnológicos. Durante todo el ciclo de vida del proyecto, usted tendrá acceso a un entorno de visualización en tiempo real para supervisar los avances diarios. Además, recibirá consultoría constante sobre mejores prácticas, seguridad y escalabilidad, asegurando que su producto final no solo sea funcional, sino una herramienta de vanguardia capaz de crecer junto a su negocio."
+                    isOpen={activeFaqId === "faq-3"}
+                    onToggle={() => setActiveFaqId(activeFaqId === "faq-3" ? null : "faq-3")}
+                  />
+                </div>
+              </div>
+
               <div className="space-y-8">
                 <h3 className="font-headline text-3xl font-bold text-white tracking-tight">Atención Premium</h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
@@ -411,12 +539,38 @@ function AuthModal({ isOpen, onClose, initialView, setView }: any) {
 
 function ContactCard({ icon, title, value, href }: any) {
   const content = (
-    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6 hover:bg-white/10 transition-all flex-1">
-      <div className="w-14 h-14 bg-cyan-400/10 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-400/20"><span className="material-symbols-outlined text-cyan-400 text-3xl">{icon}</span></div>
-      <div><h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-1">{title}</h4><p className="text-white font-bold">{value}</p></div>
+    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 flex items-center gap-6 hover:bg-white/10 transition-all flex-1 min-w-0">
+      <div className="w-12 h-12 sm:w-14 sm:h-14 bg-cyan-400/10 rounded-2xl flex items-center justify-center shrink-0 border border-cyan-400/20">
+        <span className="material-symbols-outlined text-cyan-400 text-2xl sm:text-3xl">{icon}</span>
+      </div>
+      <div className="min-w-0 flex-1">
+        <h4 className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 mb-1">{title}</h4>
+        <p className="text-white font-bold truncate text-sm sm:text-base" title={value}>{value}</p>
+      </div>
     </div>
   );
-  return href ? <a href={href} target="_blank" rel="noopener noreferrer" className="flex">{content}</a> : content;
+  return href ? <a href={href} target="_blank" rel="noopener noreferrer" className="flex min-w-0 w-full">{content}</a> : content;
+}
+
+function FAQItem({ id, question, answer, isOpen, onToggle }: { id: string; question: string; answer: string; isOpen: boolean; onToggle: () => void }) {
+  return (
+    <div className={`bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all duration-300 ${isOpen ? 'ring-1 ring-cyan-400/30 bg-white/10' : ''}`}>
+      <button 
+        onClick={onToggle}
+        className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-white/10 transition-colors"
+      >
+        <span className={`font-bold text-sm sm:text-base pr-4 transition-colors ${isOpen ? 'text-cyan-400' : 'text-white'}`}>{question}</span>
+        <span className={`material-symbols-outlined text-cyan-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}>
+          expand_more
+        </span>
+      </button>
+      <div className={`overflow-hidden transition-all duration-500 ease-in-out ${isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'}`}>
+        <div className="px-6 pb-6 pt-2 text-slate-400 text-sm leading-relaxed border-t border-white/5 bg-black/10">
+          {answer}
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function NavItem({ icon, label, href, active, small }: any) {
