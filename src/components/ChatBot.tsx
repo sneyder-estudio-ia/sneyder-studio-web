@@ -66,6 +66,14 @@ export default function ChatBot() {
       });
 
       if (!response.ok) {
+        if (response.status === 429) {
+          const errorData = await response.json();
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: errorData.message || "Lo siento, tengo muchas solicitudes. Por favor, intenta de nuevo en unos minutos." },
+          ]);
+          return;
+        }
         throw new Error("API response not ok");
       }
 

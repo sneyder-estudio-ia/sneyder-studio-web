@@ -109,8 +109,17 @@ export async function POST(req: NextRequest) {
     });
 
     if (!groqResponse.ok) {
-      const errorData = await groqResponse.text();
-      console.error("Groq API error:", errorData);
+      const errorText = await groqResponse.text();
+      console.error("Groq API error:", errorText);
+
+      // Manejo específico de Rate Limit
+      if (groqResponse.status === 429) {
+        return NextResponse.json({
+          error: "rate_limit",
+          message: "Lo siento, he recibido un gran volumen de consultas en poco tiempo. Por favor, inténtalo de nuevo en unos minutos; estaré lista para asistirte entonces."
+        }, { status: 429 });
+      }
+
       return NextResponse.json({ error: "Error de IA" }, { status: 500 });
     }
 
