@@ -106,12 +106,12 @@ export default function TerminosPage() {
       {isMenuOpen && <div className="fixed inset-0 bg-black/40 z-[65] backdrop-blur-sm" onClick={() => setIsMenuOpen(false)} />}
 
       <main className={`transition-all duration-300 min-h-screen pb-20 pt-16 ${isMenuOpen ? "pl-0 lg:pl-80" : "pl-0"}`}>
-        <div className="max-w-4xl mx-auto px-6 py-12">
+        <div className="max-w-7xl mx-auto px-2 md:px-6 py-6 md:py-12">
           <div className="mb-12 text-center">
             <p className="text-cyan-400/60 text-[10px] uppercase tracking-[0.4em] font-bold">Documentación Legal • Sneyder Studio</p>
           </div>
 
-          <div className="bg-surface-container-low border border-white/5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-8 md:p-16 lg:p-24 rounded-[2rem] relative overflow-hidden">
+          <div className="bg-surface-container-low border border-white/5 shadow-[0_30px_60px_rgba(0,0,0,0.4)] p-4 md:p-12 lg:p-16 rounded-[2rem] relative overflow-hidden">
             <div className="absolute top-0 right-0 p-12 opacity-[0.03] pointer-events-none">
               <span className="material-symbols-outlined text-[10rem]">description</span>
             </div>

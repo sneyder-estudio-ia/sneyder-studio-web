@@ -461,7 +461,13 @@ export default function Home() {
                       {/* Responsive buttons: stack on small screens */}
                       <div className="flex flex-col sm:flex-row justify-center gap-4 pt-4">
                         <button
-                          onClick={() => setShowAuthModal(true)}
+                          onClick={() => {
+                            if (user) {
+                              router.push('/contacto');
+                            } else {
+                              setShowAuthModal(true);
+                            }
+                          }}
                           className="bg-tertiary text-on-tertiary px-6 py-4 md:px-10 md:py-5 font-bold text-xs md:text-sm uppercase tracking-widest rounded-sm hover:brightness-110 transition-all flex items-center justify-center gap-2 shadow-[0_10px_30px_rgba(47,217,244,0.3)] w-full sm:w-auto pointer-events-auto"
                         >
                           {data.hero.primaryCta} <span className="material-symbols-outlined text-sm md:text-base">arrow_forward</span>
