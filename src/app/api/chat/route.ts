@@ -84,7 +84,12 @@ export async function POST(req: NextRequest) {
       content: `Tu nombre es Eva. Eres la IA oficial de Sneyder Studio.
       Contexto de la plataforma:
       ${platformContext}
-      Responde siempre de forma profesional y concisa.`
+      
+      REGLAS CRÍTICAS:
+      1. Responde siempre de forma profesional y concisa.
+      2. No uses NUNCA el símbolo numeral (#) ni asteriscos (*) en tus respuestas.
+      3. No uses formato Markdown para títulos o listas (usa texto plano elegante).
+      4. Asegúrate de que tus frases estén completas y bien estructuradas.`
     };
 
     // Llamada a Groq con streaming habilitado
@@ -97,9 +102,9 @@ export async function POST(req: NextRequest) {
       body: JSON.stringify({
         model: "llama-3.3-70b-versatile",
         messages: [systemMessage, ...messages],
-        temperature: 0.7,
+        temperature: 0.5, // Bajamos la temperatura para mayor estabilidad
         max_tokens: 1024,
-        stream: true, // Habilitar streaming
+        stream: true,
       }),
     });
 
@@ -118,29 +123,42 @@ export async function POST(req: NextRequest) {
         const reader = groqResponse.body?.getReader();
         if (!reader) return;
 
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        let buffer = "";
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
+            buffer += decoder.decode(value, { stream: true });
+            const lines = buffer.split("\n");
+            buffer = lines.pop() || ""; // Guardar la línea incompleta
 
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const dataStr = line.slice(6);
-              if (dataStr === "[DONE]") {
-                controller.close();
-                return;
-              }
-              try {
-                const data = JSON.parse(dataStr);
-                const content = data.choices?.[0]?.delta?.content || "";
-                if (content) {
-                  controller.enqueue(encoder.encode(content));
+            for (const line of lines) {
+              const trimmedLine = line.trim();
+              if (!trimmedLine) continue;
+
+              if (trimmedLine.startsWith("data: ")) {
+                const dataStr = trimmedLine.slice(6);
+                if (dataStr === "[DONE]") {
+                  controller.close();
+                  return;
                 }
-              } catch (e) {}
+                try {
+                  const data = JSON.parse(dataStr);
+                  const content = data.choices?.[0]?.delta?.content || "";
+                  if (content) {
+                    controller.enqueue(encoder.encode(content));
+                  }
+                } catch (e) {
+                  // Error parseando JSON parcial, lo ignoramos o manejamos
+                }
+              }
             }
           }
+        } catch (error) {
+          controller.error(error);
+        } finally {
+          reader.releaseLock();
         }
       },
     });
