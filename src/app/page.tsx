@@ -308,9 +308,16 @@ export default function Home() {
               Acceder
             </button>
           )}
+          <Link
+            href="/notifications"
+            className="text-cyan-400 hover:bg-slate-800 p-1.5 rounded-full transition-colors flex items-center justify-center relative"
+          >
+            <span className="material-symbols-outlined">notifications</span>
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-[#0c1324] animate-pulse"></span>
+          </Link>
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="text-cyan-400 hover:bg-slate-800 p-1 rounded-full transition-colors"
+            className="text-cyan-400 hover:bg-slate-800 p-1 rounded-full transition-colors flex items-center justify-center"
           >
             <span className="material-symbols-outlined">more_vert</span>
           </button>
