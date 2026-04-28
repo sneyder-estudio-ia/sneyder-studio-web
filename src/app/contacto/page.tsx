@@ -141,6 +141,17 @@ export default function ContactoPage() {
         } : null,
       };
       await addDoc(collection(db, 'orders'), orderData);
+      
+      // Crear notificación para el usuario
+      await addDoc(collection(db, 'notifications'), {
+        userId: user.uid,
+        title: "Propuesta recibida",
+        message: `Hemos recibido tu solicitud para "${formFields.projectSubject}". Un especialista la revisará pronto.`,
+        type: "success",
+        unread: true,
+        createdAt: new Date(),
+      });
+
       setFormStatus('success');
       setShowModal(true);
       // Reset form

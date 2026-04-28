@@ -6,8 +6,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
-import { doc, getDoc } from "firebase/firestore";
-import { initializePushNotifications, listenToForegroundMessages } from "@/lib/fcm";
+import { doc, getDoc, collection, query, where, orderBy, onSnapshot, Timestamp } from "firebase/firestore";
+import { initializePushNotifications } from "@/lib/fcm";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
 
@@ -18,32 +18,8 @@ export default function NotificationsPage() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [fcmToken, setFcmToken] = useState<string | null>(null);
   const [notifPermission, setNotifPermission] = useState<NotificationPermission | "loading">("loading");
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: "Bienvenido a Sneyder Studio",
-      message: "Gracias por unirte a nuestra plataforma. Explora nuestros servicios de IA y desarrollo.",
-      time: "Hace 2 horas",
-      type: "info",
-      unread: true,
-    },
-    {
-      id: 2,
-      title: "Actualización de Servicio",
-      message: "Hemos mejorado la velocidad de respuesta de nuestros modelos de IA en un 25%.",
-      time: "Ayer",
-      type: "update",
-      unread: false,
-    },
-    {
-      id: 3,
-      title: "Nueva Función: Crédito Directo",
-      message: "Ya puedes financiar tus proyectos con nuestro nuevo sistema de crédito.",
-      time: "Hace 2 días",
-      type: "success",
-      unread: false,
-    }
-  ]);
+  const [notifications, setNotifications] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Verificar estado del permiso de notificaciones
   useEffect(() => {
@@ -76,31 +52,49 @@ export default function NotificationsPage() {
     return () => unsubscribe();
   }, []);
 
-  // Listener de mensajes en primer plano (foreground)
+  // Sincronizar notificaciones de Firestore en tiempo real
   useEffect(() => {
-    let unsubscribeForeground: (() => void) | null = null;
+    if (!user) {
+      setNotifications([]);
+      setIsLoading(false);
+      return;
+    }
 
-    const setupForegroundListener = async () => {
-      unsubscribeForeground = await listenToForegroundMessages((payload: any) => {
-        // Agregar notificación recibida en primer plano a la lista
-        const newNotif = {
-          id: Date.now(),
-          title: payload.notification?.title || "Nueva Notificación",
-          message: payload.notification?.body || "",
-          time: "Ahora",
-          type: payload.data?.type || "info",
-          unread: true,
-        };
-        setNotifications((prev) => [newNotif, ...prev]);
-      }) as (() => void) | null;
-    };
+    setIsLoading(true);
+    const q = query(
+      collection(db, "notifications"),
+      where("userId", "==", user.uid),
+      orderBy("createdAt", "desc")
+    );
 
-    setupForegroundListener();
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const notifs = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        time: formatTime(doc.data().createdAt)
+      }));
+      setNotifications(notifs);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error listening to notifications:", error);
+      setIsLoading(false);
+    });
 
-    return () => {
-      if (unsubscribeForeground) unsubscribeForeground();
-    };
-  }, []);
+    return () => unsubscribe();
+  }, [user]);
+
+  // Función para formatear el tiempo transcurrido (Timeago simplificado)
+  const formatTime = (timestamp: any) => {
+    if (!timestamp) return "Ahora";
+    const date = timestamp instanceof Timestamp ? timestamp.toDate() : new Date(timestamp);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return "Ahora";
+    if (diffInSeconds < 3600) return `Hace ${Math.floor(diffInSeconds / 60)} min`;
+    if (diffInSeconds < 86400) return `Hace ${Math.floor(diffInSeconds / 3600)} horas`;
+    return date.toLocaleDateString();
+  };
 
   // Activar notificaciones push (botón manual)
   const handleEnableNotifications = useCallback(async () => {

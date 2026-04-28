@@ -6,7 +6,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { auth, db } from "@/lib/firebase";
 import { onAuthStateChanged } from "firebase/auth";
-import { collection, getDocs, query, orderBy, doc, updateDoc, getDoc, deleteDoc, where } from "firebase/firestore";
+import { collection, getDocs, query, orderBy, doc, updateDoc, getDoc, deleteDoc, where, addDoc } from "firebase/firestore";
 import AdminSidebar from "@/components/AdminSidebar";
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
@@ -127,6 +127,30 @@ export default function AdminPedidosPage() {
         updateData.rejected_at = new Date().toISOString();
       }
       await updateDoc(doc(db, "orders", orderId), updateData);
+      
+      // Obtener el pedido para saber a quién notificar
+      const orderToNotify = orders.find(o => o.id === orderId);
+      if (orderToNotify?.user_id) {
+        let statusText = "";
+        let type: "info" | "success" | "update" | "warning" = "info";
+        
+        switch (newStatus) {
+          case "completed": statusText = "¡Completado!"; type = "success"; break;
+          case "rejected": statusText = "Rechazado"; type = "info"; break;
+          case "pending": statusText = "en Producción"; type = "update"; break;
+          case "processing": statusText = "Nuevo / En revisión"; type = "info"; break;
+        }
+
+        await addDoc(collection(db, "notifications"), {
+          userId: orderToNotify.user_id,
+          title: "Actualización de Pedido",
+          message: `Tu pedido #${orderId.slice(0, 8)} ha cambiado a estado: ${statusText}.`,
+          type,
+          unread: true,
+          createdAt: new Date(),
+        });
+      }
+
       setOrders(prev =>
         prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o)
       );
