@@ -224,7 +224,7 @@ export default function OrderDetailPage({ params }: { params: Promise<{ id: stri
               </div>
               <div className="bg-black/20 rounded-xl p-4 border border-white/5">
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Tiempo de Desarrollo</p>
-                <p className="text-2xl font-bold text-white font-headline">{cp.development_time}</p>
+                <p className="text-2xl font-bold text-white font-headline">{cp.development_time ? cp.development_time.replace(/semanas?/gi, (m) => m.toLowerCase().endsWith('s') ? 'meses' : 'mes') : ''}</p>
               </div>
               <div className="bg-black/20 rounded-xl p-4 border border-white/5">
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Método de Pago</p>

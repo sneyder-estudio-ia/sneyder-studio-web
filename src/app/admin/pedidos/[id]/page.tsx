@@ -417,7 +417,7 @@ export default function AdminOrderDetailPage() {
               </div>
               <div className="bg-white/5 rounded-xl p-3 border border-white/5">
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Desarrollo</p>
-                <p className="text-lg font-bold text-white font-headline">{cp.development_time}</p>
+                <p className="text-lg font-bold text-white font-headline">{cp.development_time ? cp.development_time.replace(/semanas?/gi, (m) => m.toLowerCase().endsWith('s') ? 'meses' : 'mes') : ''}</p>
               </div>
               <div className="bg-white/5 rounded-xl p-3 border border-white/5">
                 <p className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Método</p>
@@ -620,7 +620,7 @@ export default function AdminOrderDetailPage() {
                 icon="handshake"
                 title="Contrapropuesta Enviada"
                 date={cp.sent_at}
-                description={`Se envió contrapropuesta por $${cp.final_price?.toLocaleString()} con desarrollo en ${cp.development_time}.`}
+                description={`Se envió contrapropuesta por $${cp.final_price?.toLocaleString()} con desarrollo en ${cp.development_time ? cp.development_time.replace(/semanas?/gi, (m) => m.toLowerCase().endsWith('s') ? 'meses' : 'mes') : ''}.`}
                 active
               />
             )}
