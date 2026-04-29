@@ -155,48 +155,29 @@ export default function VisitasPage() {
   return (
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
       {/* TopAppBar */}
-      <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
+      <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-10 md:pl-14"}`}>
         <div className="flex items-center gap-3">
-          <button 
+          <Link href="/admin">
+            <button className="text-[#89ceff] p-1 hover:bg-slate-800/50 rounded transition-all transform -scale-x-100">
+              <span className="material-symbols-outlined">arrow_forward</span>
+            </button>
+          </Link>
+          <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap uppercase">
+            Visitas
+          </h1>
+        </div>
+        <div className="flex items-center">
+          <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0"
           >
             <span className="material-symbols-outlined">more_vert</span>
           </button>
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <div className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-              <Image 
-                src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png"
-                alt="Sneyder Studio"
-                width={150}
-                height={32}
-                className="h-full w-auto object-contain group-hover:brightness-110"
-              />
-            </div>
-            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
-            <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap uppercase">
-              Analítica
-            </h1>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={generateMockData}
-            className="hidden md:flex items-center gap-2 text-[10px] bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded border border-white/10 transition-all"
-          >
-            <span className="material-symbols-outlined text-sm">precision_manufacturing</span>
-            Generar Demo
-          </button>
-          <Link href="/admin" className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-tertiary hover:underline">
-            Panel Central
-          </Link>
         </div>
       </header>
 
       {/* Main Content */}
       <main className={`pt-20 pb-28 px-4 md:px-6 max-w-7xl mx-auto space-y-8 w-full flex-grow transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
-        
-        {/* Header Section */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/10 pb-6">
           <div>
             <h2 className="text-2xl md:text-3xl font-headline font-bold text-white tracking-tight">Estadísticas de Tráfico</h2>

@@ -135,29 +135,26 @@ export default function TodosPedidosPage() {
   return (
     <div className="bg-background text-on-background selection:bg-tertiary selection:text-on-tertiary flex flex-col min-h-screen">
       {/* TopAppBar */}
-      <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl flex justify-between items-center px-4 md:px-6 h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
-        <div className="flex items-center gap-3">
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0">
-            <span className="material-symbols-outlined">more_vert</span>
-          </button>
-          <div className="flex items-center gap-2 md:gap-4 shrink-0">
-            <Link href="/" className="ml-1 h-10 w-auto relative cursor-pointer hover:scale-105 transition-all bg-white/5 rounded-xl border border-white/10 overflow-hidden p-1.5 shadow-lg group">
-              <Image src="https://i.postimg.cc/kXw7hpYj/Picsart-25-04-01-13-42-29-671.png" alt="Sneyder Studio" width={150} height={32} className="h-full w-auto object-contain group-hover:brightness-110" />
+      <header className={`fixed top-0 w-full z-50 bg-[#0c1324]/80 backdrop-blur-xl h-16 shadow-[0_20px_50px_rgba(12,19,36,0.4)] transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
+        <div className="max-w-7xl mx-auto h-full px-4 md:px-6 flex justify-between items-center">
+          <div className="flex items-center gap-3">
+            <Link href="/admin/pedidos" className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0 flex items-center justify-center">
+              <span className="material-symbols-outlined transform rotate-180">arrow_forward</span>
             </Link>
-            <div className="h-6 w-px bg-white/10 mx-2 hidden sm:block"></div>
             <h1 className="font-['Space_Grotesk'] tracking-tight text-lg md:text-xl font-bold text-[#89ceff] whitespace-nowrap uppercase">
               Total Pedidos
             </h1>
           </div>
-        </div>
-        <div className="flex items-center gap-4">
-          <Link href="/admin/pedidos" className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-tertiary hover:underline">
-            Gestión de Pedidos →
-          </Link>
+          <div className="flex items-center">
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-[#2fd9f4] hover:bg-slate-800/50 transition-all duration-300 p-2 rounded shrink-0 flex items-center justify-center">
+              <span className="material-symbols-outlined">more_vert</span>
+            </button>
+          </div>
         </div>
       </header>
 
-      <main className={`pt-20 pb-28 px-4 md:px-6 max-w-7xl mx-auto space-y-8 w-full flex-grow transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : ""}`}>
+      <main className={`flex-grow transition-all duration-300 ${isMenuOpen ? "md:pl-64 lg:pl-72" : "pl-0"}`}>
+        <div className="pt-24 pb-28 px-4 md:px-6 max-w-7xl mx-auto space-y-8 w-full">
 
         {/* Header */}
         <section className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-outline-variant/10 pb-6">
@@ -300,6 +297,7 @@ export default function TodosPedidosPage() {
             </>
           )}
         </section>
+        </div>
       </main>
 
       <AdminSidebar isMenuOpen={isMenuOpen} setIsMenuOpen={setIsMenuOpen} />
