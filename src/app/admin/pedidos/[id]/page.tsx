@@ -28,6 +28,9 @@ interface OrderDetail {
     project_description?: string;
     business_description?: string;
     submitted_at?: string;
+    platforms?: string[];
+    technologies?: { [key: string]: string[] };
+    databases?: string[];
   };
   credit_info?: {
     wants_credit?: boolean;
@@ -564,6 +567,58 @@ export default function AdminOrderDetailPage() {
               </div>
             </div>
           </section>
+
+          {/* Technical Requirements */}
+          {(proposal?.platforms?.length || proposal?.databases?.length) ? (
+            <section className="bg-surface-container-low border border-white/5 rounded-2xl p-6 space-y-5 lg:col-span-2">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-blue-400/10 flex items-center justify-center border border-blue-400/20">
+                  <span className="material-symbols-outlined text-blue-400">memory</span>
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-white uppercase tracking-tight">Requerimientos Técnicos</h3>
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest">Plataformas, tecnologías y base de datos</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                {/* Platforms & Technologies */}
+                {proposal.platforms && proposal.platforms.length > 0 && (
+                  <div className="space-y-4">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold ml-1">Plataformas Solicitadas</p>
+                    <div className="space-y-3">
+                      {proposal.platforms.map((platform) => (
+                        <div key={platform} className="bg-white/[0.03] border border-white/5 rounded-xl p-4 space-y-3">
+                          <TechBadge name={platform} />
+                          {proposal.technologies?.[platform] && proposal.technologies[platform].length > 0 && (
+                            <div className="pl-2 border-l border-white/10 flex flex-wrap gap-2">
+                              {proposal.technologies[platform].map((tech) => (
+                                <TechBadge key={tech} name={tech} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Databases */}
+                {proposal.databases && proposal.databases.length > 0 && (
+                  <div className="space-y-4">
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-bold ml-1">Bases de Datos</p>
+                    <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4 flex flex-wrap gap-3">
+                      {proposal.databases.map((dbName) => (
+                        <TechBadge key={dbName} name={dbName} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            </section>
+          ) : null}
+
         </div>
 
         {/* Items Detail */}
@@ -671,6 +726,37 @@ export default function AdminOrderDetailPage() {
   );
 }
 
+function TechBadge({ name }: { name: string }) {
+  const getDisplay = (n: string) => {
+    switch(n) {
+      case 'web': return { label: 'Sitio Web', icon: 'language', color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' };
+      case 'multi': return { label: 'Multiplataforma (iOS & Android)', icon: 'devices', color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20' };
+      case 'desktop': return { label: 'Escritorio (Windows/Mac)', icon: 'desktop_windows', color: 'text-indigo-400', bg: 'bg-indigo-400/10', border: 'border-indigo-400/20' };
+      case 'developer_choice': return { label: 'A sugerencia del desarrollador', icon: 'psychology', color: 'text-amber-400', bg: 'bg-amber-400/10', border: 'border-amber-400/20' };
+      case 'react': return { label: 'React', icon: 'code', color: 'text-[#61DAFB]', bg: 'bg-[#61DAFB]/10', border: 'border-[#61DAFB]/20' };
+      case 'nextjs': return { label: 'Next.js', icon: 'change_history', color: 'text-white', bg: 'bg-white/10', border: 'border-white/20' };
+      case 'vue': return { label: 'Vue.js', icon: 'code', color: 'text-[#4FC08D]', bg: 'bg-[#4FC08D]/10', border: 'border-[#4FC08D]/20' };
+      case 'angular': return { label: 'Angular', icon: 'code', color: 'text-[#DD0031]', bg: 'bg-[#DD0031]/10', border: 'border-[#DD0031]/20' };
+      case 'svelte': return { label: 'Svelte', icon: 'code', color: 'text-[#FF3E00]', bg: 'bg-[#FF3E00]/10', border: 'border-[#FF3E00]/20' };
+      case 'flutter': return { label: 'Flutter', icon: 'flutter_dash', color: 'text-[#02569B]', bg: 'bg-[#02569B]/10', border: 'border-[#02569B]/20' };
+      case 'react_native': return { label: 'React Native', icon: 'smartphone', color: 'text-[#61DAFB]', bg: 'bg-[#61DAFB]/10', border: 'border-[#61DAFB]/20' };
+      case 'electron': return { label: 'Electron', icon: 'desktop_mac', color: 'text-[#47848F]', bg: 'bg-[#47848F]/10', border: 'border-[#47848F]/20' };
+      case 'tauri': return { label: 'Tauri', icon: 'desktop_windows', color: 'text-[#FFC131]', bg: 'bg-[#FFC131]/10', border: 'border-[#FFC131]/20' };
+      case 'firebase': return { label: 'Firebase', icon: 'local_fire_department', color: 'text-[#FFCA28]', bg: 'bg-[#FFCA28]/10', border: 'border-[#FFCA28]/20' };
+      case 'supabase': return { label: 'Supabase', icon: 'database', color: 'text-[#3ECF8E]', bg: 'bg-[#3ECF8E]/10', border: 'border-[#3ECF8E]/20' };
+      case 'sql': return { label: 'SQL', icon: 'table', color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20' };
+      case 'nosql': return { label: 'NoSQL', icon: 'data_object', color: 'text-green-400', bg: 'bg-green-400/10', border: 'border-green-400/20' };
+      default: return { label: n.charAt(0).toUpperCase() + n.slice(1), icon: 'code', color: 'text-slate-400', bg: 'bg-slate-400/10', border: 'border-slate-400/20' };
+    }
+  };
+  const config = getDisplay(name);
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border ${config.border} ${config.bg} ${config.color} text-xs font-bold`}>
+      <span className="material-symbols-outlined text-[16px]">{config.icon}</span>
+      {config.label}
+    </span>
+  );
+}
 function DetailField({ label, value, icon, mono, highlight, isLink }: { label: string; value: string; icon: string; mono?: boolean; highlight?: boolean; isLink?: string }) {
   const content = (
     <div className="flex items-start gap-3 group">

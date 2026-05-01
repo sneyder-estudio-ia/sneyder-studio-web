@@ -109,13 +109,15 @@ export default function PoliticasPage() {
           </Link>
         </div>
         <nav className="flex-1 overflow-y-auto px-4 space-y-1">
-          <NavItem icon="home" label="Inicio" href="/" />
-          {user?.email === ADMIN_EMAIL && <NavItem icon="settings" label="Administración" href="/admin" />}
+          <NavItem icon="home" label="Inicio" href="/" onClick={() => setIsMenuOpen(false)} />
+          {user?.email === ADMIN_EMAIL && <NavItem icon="settings" label="Administración" href="/admin" onClick={() => setIsMenuOpen(false)} />}
           <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Legal</div>
-          <NavItem icon="policy" label="Política y condiciones" href="/politicas" active small />
-          <NavItem icon="gavel" label="Términos de servicio" href="/terminos" small />
-          <NavItem icon="description" label="Contrato de servicios" href="/contrato" small />
-          <NavItem icon="info" label="Acerca de nosotros" href="/nosotros" small />
+          <NavItem icon="policy" label="Política y condiciones" href="/politicas" active small onClick={() => setIsMenuOpen(false)} />
+          <NavItem icon="gavel" label="Términos de servicio" href="/terminos" small onClick={() => setIsMenuOpen(false)} />
+          <NavItem icon="description" label="Contrato de servicios" href="/contrato" small onClick={() => setIsMenuOpen(false)} />
+          <div className="pt-6 pb-2 px-4 text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold">Empresa</div>
+          <NavItem icon="info" label="Acerca de nosotros" href="/nosotros" small onClick={() => setIsMenuOpen(false)} />
+          <NavItem icon="support_agent" label="Soporte Técnico" href="https://wa.me/50688888888" small onClick={() => setIsMenuOpen(false)} />
         </nav>
       </aside>
 
@@ -215,11 +217,29 @@ export default function PoliticasPage() {
   );
 }
 
-function NavItem({ icon, label, href, active = false, small = false }: { icon: string; label: string; href: string; active?: boolean; small?: boolean }) {
-  return (
-    <Link href={href} className={`flex items-center gap-4 px-4 py-3 transition-colors ${active ? "text-cyan-400 font-bold bg-slate-800/50" : "text-slate-400 hover:bg-slate-800 hover:text-white"} ${small ? "text-sm" : ""}`}>
+function NavItem({ icon, label, href, active = false, small = false, onClick }: { icon: string; label: string; href: string; active?: boolean; small?: boolean; onClick?: () => void }) {
+  const isExternal = href.startsWith('http');
+  
+  const content = (
+    <>
       <span className="material-symbols-outlined">{icon}</span>
       <span>{label}</span>
+    </>
+  );
+
+  const baseStyles = `flex items-center gap-4 px-4 py-3 transition-colors ${active ? "text-cyan-400 font-bold bg-slate-800/50" : "text-slate-400 hover:bg-slate-800 hover:text-white"} ${small ? "text-sm" : ""}`;
+
+  if (isExternal) {
+    return (
+      <a href={href} target="_blank" rel="noopener noreferrer" className={baseStyles} onClick={onClick}>
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <Link href={href} className={baseStyles} onClick={onClick}>
+      {content}
     </Link>
   );
 }

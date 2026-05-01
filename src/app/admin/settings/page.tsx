@@ -30,7 +30,13 @@ const DEFAULT_SETTINGS = {
   contract_representative: "Sneyder José",
   contract_company_id: "",
   contract_company_name: "Sneyder Studio",
-  contract_location: "San José, Costa Rica"
+  contract_location: "San José, Costa Rica",
+  platform_price_android: "0",
+  platform_price_iphone: "0",
+  platform_price_windows: "0",
+  platform_price_linux: "0",
+  platform_price_mac: "0",
+  platform_price_web: "0"
 };
 
 const ADMIN_EMAIL = "sneyder23081994@gmail.com";
@@ -395,6 +401,99 @@ export default function AdminSettingsPage() {
                     />
                   </div>
                 </div>
+              </div>
+            </section>
+
+            {/* Multi-Platform Pricing Section */}
+            <section className="bg-surface-container-low border border-[#45464d]/15 rounded-xl p-6 md:p-8 space-y-6 shadow-xl relative overflow-hidden">
+               <div className="absolute top-0 right-0 p-10 opacity-5 pointer-events-none text-tertiary">
+                <span className="material-symbols-outlined text-8xl text-purple-500">devices</span>
+              </div>
+              <h3 className="text-tertiary text-xs font-bold uppercase tracking-[0.2em] flex items-center gap-3">
+                <span className="w-4 h-px bg-tertiary/30"></span>
+                Precios Multiplataforma
+              </h3>
+              <p className="text-slate-400 text-xs">Define el costo adicional por despliegue extra. El primer despliegue es gratuito (incluido en el proyecto base).</p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="space-y-2">
+                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Android</label>
+                   <div className="relative group">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg group-focus-within:text-tertiary transition-colors">attach_money</span>
+                     <input 
+                       type="text"
+                       value={settings.platform_price_android}
+                       onChange={(e) => setSettings({...settings, platform_price_android: e.target.value})}
+                       placeholder="0.00"
+                       className="w-full bg-[#0c1324] border border-[#45464d]/30 focus:border-tertiary outline-none rounded-lg py-3 pl-12 pr-4 text-sm transition-all shadow-inner"
+                     />
+                   </div>
+                 </div>
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">iPhone / iOS</label>
+                   <div className="relative group">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg group-focus-within:text-tertiary transition-colors">attach_money</span>
+                     <input 
+                       type="text"
+                       value={settings.platform_price_iphone}
+                       onChange={(e) => setSettings({...settings, platform_price_iphone: e.target.value})}
+                       placeholder="0.00"
+                       className="w-full bg-[#0c1324] border border-[#45464d]/30 focus:border-tertiary outline-none rounded-lg py-3 pl-12 pr-4 text-sm transition-all shadow-inner"
+                     />
+                   </div>
+                 </div>
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Windows</label>
+                   <div className="relative group">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg group-focus-within:text-tertiary transition-colors">attach_money</span>
+                     <input 
+                       type="text"
+                       value={settings.platform_price_windows}
+                       onChange={(e) => setSettings({...settings, platform_price_windows: e.target.value})}
+                       placeholder="0.00"
+                       className="w-full bg-[#0c1324] border border-[#45464d]/30 focus:border-tertiary outline-none rounded-lg py-3 pl-12 pr-4 text-sm transition-all shadow-inner"
+                     />
+                   </div>
+                 </div>
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Linux</label>
+                   <div className="relative group">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg group-focus-within:text-tertiary transition-colors">attach_money</span>
+                     <input 
+                       type="text"
+                       value={settings.platform_price_linux}
+                       onChange={(e) => setSettings({...settings, platform_price_linux: e.target.value})}
+                       placeholder="0.00"
+                       className="w-full bg-[#0c1324] border border-[#45464d]/30 focus:border-tertiary outline-none rounded-lg py-3 pl-12 pr-4 text-sm transition-all shadow-inner"
+                     />
+                   </div>
+                 </div>
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Mac</label>
+                   <div className="relative group">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg group-focus-within:text-tertiary transition-colors">attach_money</span>
+                     <input 
+                       type="text"
+                       value={settings.platform_price_mac}
+                       onChange={(e) => setSettings({...settings, platform_price_mac: e.target.value})}
+                       placeholder="0.00"
+                       className="w-full bg-[#0c1324] border border-[#45464d]/30 focus:border-tertiary outline-none rounded-lg py-3 pl-12 pr-4 text-sm transition-all shadow-inner"
+                     />
+                   </div>
+                 </div>
+                 <div className="space-y-2">
+                   <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Web</label>
+                   <div className="relative group">
+                     <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-500 text-lg group-focus-within:text-tertiary transition-colors">attach_money</span>
+                     <input 
+                       type="text"
+                       value={settings.platform_price_web || "0"}
+                       onChange={(e) => setSettings({...settings, platform_price_web: e.target.value})}
+                       placeholder="0.00"
+                       className="w-full bg-[#0c1324] border border-[#45464d]/30 focus:border-tertiary outline-none rounded-lg py-3 pl-12 pr-4 text-sm transition-all shadow-inner"
+                     />
+                   </div>
+                 </div>
               </div>
             </section>
 
